@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,20 +12,32 @@ using projekt_zespolowy.Models;
 
 namespace projekt_zespolowy.Controllers
 {
+    [Authorize]
     public class TransactionsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public TransactionsController(ApplicationDbContext context)
+        public TransactionsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Transactions
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Transactions.Include(t => t.ApplicationUser).Include(t => t.Category);
-            return View(await applicationDbContext.ToListAsync());
+            var currentUserId = GetCurrentUserId();
+
+            var userTransactions = _context.Transactions
+                    .Where(t => t.ApplicationUserId == currentUserId)
+                    .Include(t => t.Category);
+
+            return View(await userTransactions.ToListAsync());
+        }
+        private string GetCurrentUserId()
+        {
+            return _userManager.GetUserId(User);
         }
 
         // GET: Transactions/Details/5
@@ -59,16 +73,23 @@ namespace projekt_zespolowy.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Description,Amount,Date,Type,CategoryId,ApplicationUserId")] Transaction transaction)
+        public async Task<IActionResult> Create([Bind("Id,Description,Amount,Date,Type,CategoryId")] Transaction transaction)
         {
+            transaction.ApplicationUserId = GetCurrentUserId();
+
+            ModelState.Remove("ApplicationUserId");
+
             if (ModelState.IsValid)
             {
                 _context.Add(transaction);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ApplicationUserId"] = new SelectList(_context.Users, "Id", "Id", transaction.ApplicationUserId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", transaction.CategoryId);
+
+            ViewData["CategoryId"] = new SelectList(
+                _context.Categories.Where(c => c.ApplicationUserId == GetCurrentUserId()),
+                "Id", "Name", transaction.CategoryId);
+
             return View(transaction);
         }
 

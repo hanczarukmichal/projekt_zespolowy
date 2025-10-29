@@ -7,23 +7,36 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using projekt_zespolowy.Data;
 using projekt_zespolowy.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace projekt_zespolowy.Controllers
 {
+    [Authorize]
     public class CategoriesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public CategoriesController(ApplicationDbContext context)
+        public CategoriesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
+        }
+
+        private string GetCurrentUserId()
+        {
+            return _userManager.GetUserId(User);
         }
 
         // GET: Categories
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Categories.Include(c => c.ApplicationUser);
-            return View(await applicationDbContext.ToListAsync());
+            var currentUserId = GetCurrentUserId();
+            var userCategories = _context.Categories
+                .Where(c => c.ApplicationUserId == currentUserId);
+
+            return View(await userCategories.ToListAsync());
         }
 
         // GET: Categories/Details/5
@@ -35,11 +48,16 @@ namespace projekt_zespolowy.Controllers
             }
 
             var category = await _context.Categories
-                .Include(c => c.ApplicationUser)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (category == null)
             {
                 return NotFound();
+            }
+
+            if (category.ApplicationUserId != GetCurrentUserId())
+            {
+                return Forbid();
             }
 
             return View(category);
@@ -48,24 +66,25 @@ namespace projekt_zespolowy.Controllers
         // GET: Categories/Create
         public IActionResult Create()
         {
-            ViewData["ApplicationUserId"] = new SelectList(_context.Users, "Id", "Id");
             return View();
         }
 
         // POST: Categories/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,ApplicationUserId")] Category category)
+        public async Task<IActionResult> Create([Bind("Id,Name")] Category category)
         {
+            category.ApplicationUserId = GetCurrentUserId();
+
+            ModelState.Remove("ApplicationUserId");
+
             if (ModelState.IsValid)
             {
                 _context.Add(category);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ApplicationUserId"] = new SelectList(_context.Users, "Id", "Id", category.ApplicationUserId);
+
             return View(category);
         }
 
@@ -82,27 +101,47 @@ namespace projekt_zespolowy.Controllers
             {
                 return NotFound();
             }
-            ViewData["ApplicationUserId"] = new SelectList(_context.Users, "Id", "Id", category.ApplicationUserId);
+
+            if (category.ApplicationUserId != GetCurrentUserId())
+            {
+                return Forbid();
+            }
+
             return View(category);
         }
 
         // POST: Categories/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,ApplicationUserId")] Category category)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Category category)
         {
             if (id != category.Id)
             {
                 return NotFound();
             }
 
+            var categoryToUpdate = await _context.Categories.FindAsync(id);
+
+            if (categoryToUpdate == null)
+            {
+                return NotFound();
+            }
+
+            if (categoryToUpdate.ApplicationUserId != GetCurrentUserId())
+            {
+                return Forbid();
+            }
+
+            categoryToUpdate.Name = category.Name;
+
+            ModelState.Remove("ApplicationUserId");
+
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(category);
+                    _context.Update(categoryToUpdate);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -118,7 +157,7 @@ namespace projekt_zespolowy.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ApplicationUserId"] = new SelectList(_context.Users, "Id", "Id", category.ApplicationUserId);
+
             return View(category);
         }
 
@@ -131,11 +170,16 @@ namespace projekt_zespolowy.Controllers
             }
 
             var category = await _context.Categories
-                .Include(c => c.ApplicationUser)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (category == null)
             {
                 return NotFound();
+            }
+
+            if (category.ApplicationUserId != GetCurrentUserId())
+            {
+                return Forbid();
             }
 
             return View(category);
@@ -147,18 +191,25 @@ namespace projekt_zespolowy.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var category = await _context.Categories.FindAsync(id);
+
             if (category != null)
             {
+                if (category.ApplicationUserId != GetCurrentUserId())
+                {
+                    return Forbid();
+                }
+
                 _context.Categories.Remove(category);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool CategoryExists(int id)
         {
-            return _context.Categories.Any(e => e.Id == id);
+            var currentUserId = GetCurrentUserId();
+            return _context.Categories.Any(e => e.Id == id && e.ApplicationUserId == currentUserId);
         }
     }
 }
