@@ -41,3 +41,5 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.Run();
+
+// Dziejuuu tu był. 
