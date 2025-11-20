@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace projekt_zespolowy.Controllers
 {
-    [Authorize]
+    [Authorize] // Wymaga zalogowania dla wszystkich akcji w tym kontrolerze
     public class CategoriesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -24,6 +24,7 @@ namespace projekt_zespolowy.Controllers
             _userManager = userManager;
         }
 
+        // Metoda pomocnicza do pobierania ID zalogowanego użytkownika
         private string GetCurrentUserId()
         {
             return _userManager.GetUserId(User);
@@ -33,6 +34,7 @@ namespace projekt_zespolowy.Controllers
         public async Task<IActionResult> Index()
         {
             var currentUserId = GetCurrentUserId();
+            // Filtrujemy kategorie, aby pokazać tylko te należące do zalogowanego użytkownika
             var userCategories = _context.Categories
                 .Where(c => c.ApplicationUserId == currentUserId);
 
@@ -55,9 +57,10 @@ namespace projekt_zespolowy.Controllers
                 return NotFound();
             }
 
+            // Sprawdzamy, czy kategoria należy do użytkownika
             if (category.ApplicationUserId != GetCurrentUserId())
             {
-                return Forbid();
+                return Forbid(); // Brak dostępu
             }
 
             return View(category);
@@ -74,8 +77,11 @@ namespace projekt_zespolowy.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name")] Category category)
         {
+            // Przypisujemy kategorię do aktualnie zalogowanego użytkownika
             category.ApplicationUserId = GetCurrentUserId();
 
+            // Usuwamy błędy walidacji dla pól użytkownika (bo ustawiamy je ręcznie)
+            ModelState.Remove("ApplicationUser");
             ModelState.Remove("ApplicationUserId");
 
             if (ModelState.IsValid)
@@ -84,7 +90,6 @@ namespace projekt_zespolowy.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-
             return View(category);
         }
 
@@ -102,6 +107,7 @@ namespace projekt_zespolowy.Controllers
                 return NotFound();
             }
 
+            // Zabezpieczenie: użytkownik może edytować tylko swoje kategorie
             if (category.ApplicationUserId != GetCurrentUserId())
             {
                 return Forbid();
@@ -120,6 +126,7 @@ namespace projekt_zespolowy.Controllers
                 return NotFound();
             }
 
+            // Pobieramy oryginalną kategorię z bazy, aby sprawdzić uprawnienia
             var categoryToUpdate = await _context.Categories.FindAsync(id);
 
             if (categoryToUpdate == null)
@@ -127,15 +134,18 @@ namespace projekt_zespolowy.Controllers
                 return NotFound();
             }
 
+            // Sprawdzamy, czy kategoria należy do użytkownika
             if (categoryToUpdate.ApplicationUserId != GetCurrentUserId())
             {
                 return Forbid();
             }
 
+            // Aktualizujemy tylko nazwę
             categoryToUpdate.Name = category.Name;
 
+            // Usuwamy walidację dla użytkownika
+            ModelState.Remove("ApplicationUser");
             ModelState.Remove("ApplicationUserId");
-
 
             if (ModelState.IsValid)
             {
@@ -157,7 +167,6 @@ namespace projekt_zespolowy.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-
             return View(category);
         }
 
@@ -194,6 +203,7 @@ namespace projekt_zespolowy.Controllers
 
             if (category != null)
             {
+                // Sprawdzenie uprawnień przed usunięciem
                 if (category.ApplicationUserId != GetCurrentUserId())
                 {
                     return Forbid();
