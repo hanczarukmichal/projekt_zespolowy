@@ -11,7 +11,7 @@ using projekt_zespolowy.Models;
 
 namespace projekt_zespolowy.Controllers
 {
-   // [Authorize] // Wymaga zalogowania
+    [Authorize] // Odkomentuj to, aby wymusić logowanie
     public class BudgetsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -23,10 +23,12 @@ namespace projekt_zespolowy.Controllers
             _userManager = userManager;
         }
 
-        // GET: Budgets (Lista budżetów użytkownika)
+        // GET: Budgets
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
             var budgets = _context.Budgets
                 .Include(b => b.Category)
                 .Where(b => b.ApplicationUserId == user.Id)
@@ -39,7 +41,7 @@ namespace projekt_zespolowy.Controllers
         public IActionResult Create()
         {
             var userId = _userManager.GetUserId(User);
-            // Pobierz tylko kategorie zalogowanego użytkownika
+            // Pobieramy tylko kategorie tego użytkownika
             ViewData["CategoryId"] = new SelectList(_context.Categories.Where(c => c.ApplicationUserId == userId), "Id", "Name");
             return View();
         }
@@ -50,8 +52,16 @@ namespace projekt_zespolowy.Controllers
         public async Task<IActionResult> Create([Bind("Id,Amount,Month,CategoryId")] Budget budget)
         {
             var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
 
-            // Walidacja: Sprawdź czy budżet dla tej kategorii w tym miesiącu już istnieje
+            budget.ApplicationUserId = user.Id;
+
+            // POPRAWKA: Usuwamy walidację dla wszystkich powiązanych obiektów
+            ModelState.Remove("ApplicationUser");
+            ModelState.Remove("ApplicationUserId");
+            ModelState.Remove("Category"); // <--- DODANO TĘ LINIĘ
+
+            // Walidacja duplikatów
             bool exists = await _context.Budgets.AnyAsync(b =>
                 b.ApplicationUserId == user.Id &&
                 b.CategoryId == budget.CategoryId &&
@@ -65,10 +75,7 @@ namespace projekt_zespolowy.Controllers
 
             if (ModelState.IsValid)
             {
-                budget.ApplicationUserId = user.Id;
-                // Ustawiamy zawsze na 1. dzień miesiąca dla spójności
                 budget.Month = new DateTime(budget.Month.Year, budget.Month.Month, 1);
-
                 _context.Add(budget);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -84,6 +91,7 @@ namespace projekt_zespolowy.Controllers
             if (id == null) return NotFound();
 
             var user = await _userManager.GetUserAsync(User);
+            // Zabezpieczenie: pobierz tylko jeśli należy do usera
             var budget = await _context.Budgets.FirstOrDefaultAsync(b => b.Id == id && b.ApplicationUserId == user.Id);
 
             if (budget == null) return NotFound();
@@ -100,16 +108,24 @@ namespace projekt_zespolowy.Controllers
             if (id != budget.Id) return NotFound();
 
             var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            budget.ApplicationUserId = user.Id;
+
+            // POPRAWKA: Usuwamy walidację dla wszystkich powiązanych obiektów
+            ModelState.Remove("ApplicationUser");
+            ModelState.Remove("ApplicationUserId");
+            ModelState.Remove("Category"); // <--- DODANO TĘ LINIĘ
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Upewnij się, że edytowany obiekt należy do użytkownika
-                    var existingBudget = await _context.Budgets.AsNoTracking().FirstOrDefaultAsync(b => b.Id == id && b.ApplicationUserId == user.Id);
-                    if (existingBudget == null) return NotFound();
+                    var existsAndOwned = await _context.Budgets.AsNoTracking()
+                        .AnyAsync(b => b.Id == id && b.ApplicationUserId == user.Id);
 
-                    budget.ApplicationUserId = user.Id;
+                    if (!existsAndOwned) return Forbid();
+
                     budget.Month = new DateTime(budget.Month.Year, budget.Month.Month, 1);
 
                     _context.Update(budget);
