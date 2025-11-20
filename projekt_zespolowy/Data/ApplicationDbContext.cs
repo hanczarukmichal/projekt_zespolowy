@@ -13,7 +13,7 @@ namespace projekt_zespolowy.Data
 
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<Category> Categories { get; set; }
-
+        public DbSet<Budget> Budgets { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -22,6 +22,20 @@ namespace projekt_zespolowy.Data
                 .HasOne(t => t.Category)
                 .WithMany()
                 .HasForeignKey(t => t.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            
+            builder.Entity<Budget>()
+                .HasOne(b => b.Category)
+                .WithMany()
+                .HasForeignKey(b => b.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            
+            builder.Entity<Budget>()
+                .HasOne(b => b.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(b => b.ApplicationUserId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
