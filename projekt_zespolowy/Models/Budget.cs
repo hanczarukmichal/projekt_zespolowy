@@ -4,6 +4,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace projekt_zespolowy.Models
 {
+    // Definicja priorytetów musi być tutaj
+    public enum BudgetPriority
+    {
+        Niski = 0,
+        Sredni = 1,
+        Wysoki = 2
+    }
+
     public class Budget
     {
         public int Id { get; set; }
@@ -17,15 +25,17 @@ namespace projekt_zespolowy.Models
         [Required(ErrorMessage = "Miesiąc i rok są wymagane")]
         [DataType(DataType.Date)]
         [Display(Name = "Miesiąc")]
-        
         public DateTime Month { get; set; }
+
+        [Required]
+        [Display(Name = "Priorytet")]
+        public BudgetPriority Priority { get; set; }
 
         [Required]
         [Display(Name = "Kategoria")]
         public int CategoryId { get; set; }
         public virtual Category Category { get; set; }
 
-        
         public string ApplicationUserId { get; set; }
         public virtual ApplicationUser ApplicationUser { get; set; }
     }

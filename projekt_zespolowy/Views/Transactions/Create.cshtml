@@ -2,49 +2,82 @@
 @using projekt_zespolowy.Models
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Dodaj Transakcję";
 }
 
-<h1>Create</h1>
-
-<h4>Transaction</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
+<div class="card shadow mt-4">
+    <div class="card-header bg-success text-white">
+        <h4>Nowa Transakcja</h4>
+    </div>
+    <div class="card-body">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Amount" class="control-label"></label>
-                <input asp-for="Amount" class="form-control" />
+
+            <div class="mb-3">
+                <label asp-for="Amount" class="form-label fw-bold">Kwota</label>
+                <input asp-for="Amount" class="form-control form-control-lg" placeholder="0.00" />
                 <span asp-validation-for="Amount" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Date" class="control-label"></label>
-                <input asp-for="Date" class="form-control" />
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Typ Transakcji</label>
+                <select asp-for="Type" class="form-select" id="typeSelect" onchange="toggleCategory()">
+                    <option value="@TransactionType.Expense">📉 Wydatek</option>
+                    <option value="@TransactionType.Income">📈 Przychód</option>
+                </select>
+            </div>
+
+            <div class="mb-3" id="categoryDiv">
+                <label class="form-label fw-bold">Kategoria Budżetu</label>
+                <div class="input-group">
+                    <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId">
+                        <option value="">-- Wybierz Budżet --</option>
+                    </select>
+                    <a asp-controller="Budgets" asp-action="Create" class="btn btn-outline-secondary">+ Nowy Budżet</a>
+                </div>
+                <div class="form-text">Wybierz budżet, który zostanie obciążony.</div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Date" class="form-label fw-bold">Data</label>
+                <div class="input-group">
+                    <input asp-for="Date" class="form-control" id="dateInput" />
+                    <button type="button" class="btn btn-outline-primary" onclick="setToday()">Dzisiaj</button>
+                </div>
                 <span asp-validation-for="Date" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="CategoryId" class="control-label"></label>
-                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label">Opis (opcjonalnie)</label>
+                <textarea asp-for="Description" class="form-control" rows="2"></textarea>
             </div>
-            <div class="form-group mt-3">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
+
+            <button type="submit" class="btn btn-success w-100 btn-lg">Zapisz</button>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+<script>
+    function toggleCategory() {
+        var type = document.getElementById("typeSelect").value;
+        var catDiv = document.getElementById("categoryDiv");
+        // W C# Enum: Income to zazwyczaj 0, Expense 1 (lub odwrotnie, zależy od definicji).
+        // Tutaj Value w select będzie tekstem "Income" lub "Expense"
+        if (type === "Income") {
+            catDiv.style.display = "none";
+        } else {
+            catDiv.style.display = "block";
+        }
     }
-}
+
+    function setToday() {
+        var now = new Date();
+        // Formatowanie daty pod input type="datetime-local"
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById("dateInput").value = now.toISOString().slice(0,16);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+         toggleCategory();
+    });
+</script>

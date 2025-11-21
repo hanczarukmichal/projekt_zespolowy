@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Identity;
 
 namespace projekt_zespolowy.Models
 {
@@ -27,8 +27,8 @@ namespace projekt_zespolowy.Models
         [Required]
         public TransactionType Type { get; set; }
 
-        [Display(Name = "Category")]
-        public int CategoryId { get; set; }
+        [Display(Name = "Kategoria")]
+        public int? CategoryId { get; set; } // Zmiana na nullable (int?)
         public virtual Category Category { get; set; }
 
         public string ApplicationUserId { get; set; }
