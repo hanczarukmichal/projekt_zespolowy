@@ -1,44 +1,98 @@
 ﻿@model projekt_zespolowy.Models.Budget
+@using projekt_zespolowy.Models
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Nowy Budżet";
+    var selection = ViewBag.CategorySelection as string ?? "Jedzenie";
 }
 
-<h1>Create</h1>
-
-<h4>Budget</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
+<div class="card shadow-sm mt-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Planowanie Budżetu</h4>
+    </div>
+    <div class="card-body">
         <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Amount" class="control-label"></label>
-                <input asp-for="Amount" class="form-control" />
+            <div asp-validation-summary="All" class="alert alert-danger" role="alert" style="display:none;"></div>
+            <label class="form-label fw-bold">Wybierz Kategorię</label>
+            <div class="mb-3">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="CategorySelection" id="cat1" value="Jedzenie" @(selection == "Jedzenie" ? "checked" : "") onchange="toggleCustomCategory(false)">
+                    <label class="form-check-label" for="cat1">🍔 Jedzenie</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="CategorySelection" id="cat2" value="Rachunki" @(selection == "Rachunki" ? "checked" : "") onchange="toggleCustomCategory(false)">
+                    <label class="form-check-label" for="cat2">💡 Rachunki</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="CategorySelection" id="cat3" value="Rozrywka" @(selection == "Rozrywka" ? "checked" : "") onchange="toggleCustomCategory(false)">
+                    <label class="form-check-label" for="cat3">🎬 Rozrywka</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="CategorySelection" id="catCustom" value="Custom" @(selection == "Custom" ? "checked" : "") onchange="toggleCustomCategory(true)">
+                    <label class="form-check-label" for="catCustom">✏️ Wpisz własną</label>
+                </div>
+            </div>
+
+            <div class="form-group mb-3" id="customCategoryDiv" style="display:none;">
+                <input type="text" name="CustomCategoryName" class="form-control" placeholder="Wpisz nazwę kategorii..." />
+                <span class="text-danger field-validation-valid" data-valmsg-for="CustomCategoryName" data-valmsg-replace="true"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Amount" class="form-label fw-bold">Limit (PLN)</label>
+                <input asp-for="Amount" type="number" step="0.01" class="form-control" placeholder="0.00" />
                 <span asp-validation-for="Amount" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Month" class="control-label"></label>
-                <input asp-for="Month" class="form-control" />
+
+            <div class="form-group mb-3">
+                <label asp-for="Month" class="form-label fw-bold">Miesiąc</label>
+                <input asp-for="Month" type="date" class="form-control" />
                 <span asp-validation-for="Month" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="CategoryId" class="control-label"></label>
-                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
+
+            <div class="form-group mb-3" id="priorityDiv" style="display:none;">
+                <label asp-for="Priority" class="form-label fw-bold">Priorytet</label>
+                <select asp-for="Priority" class="form-select">
+                    <option value="0">Niski</option>
+                    <option value="1" selected>Średni</option>
+                    <option value="2">Wysoki</option>
+                </select>
+                <div class="form-text">Kategorie podstawowe mają zawsze priorytet Wysoki.</div>
             </div>
-            <div class="form-group mt-3">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
+
+            <button type="submit" class="btn btn-success w-100">Utwórz Budżet</button>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+<script>
+    function toggleCustomCategory(isCustom) {
+        var customDiv = document.getElementById("customCategoryDiv");
+        var priorityDiv = document.getElementById("priorityDiv");
+
+        if (isCustom) {
+            customDiv.style.display = "block";
+            priorityDiv.style.display = "block";
+        } else {
+            customDiv.style.display = "none";
+            priorityDiv.style.display = "none";
+        }
+    }
+
+    // Uruchom przy starcie strony (żeby pokazać/ukryć odpowiednie pola w razie powrotu z błędem)
+    document.addEventListener("DOMContentLoaded", function() {
+        var isCustomSelected = document.querySelector('input[name="CategorySelection"]:checked').value === "Custom";
+        toggleCustomCategory(isCustomSelected);
+    });
+</script>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        // Opcjonalnie: pokaż podsumowanie błędów jeśli są
+        var summary = document.querySelector(".validation-summary-errors");
+        if(summary) summary.style.display = "block";
+    </script>
 }

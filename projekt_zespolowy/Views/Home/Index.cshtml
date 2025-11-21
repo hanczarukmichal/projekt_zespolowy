@@ -1,8 +1,29 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Witaj";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container text-center mt-5">
+    <div class="jumbotron bg-light p-5 rounded shadow-sm">
+        <h1 class="display-4 text-primary fw-bold">SmartBudget</h1>
+        <p class="lead mt-3">Twoje finanse pod kontrolą. Prosto, przejrzyście i skutecznie.</p>
+        <hr class="my-4">
+        <div class="row text-start mt-5">
+            <div class="col-md-4">
+                <h3>📊 Planuj Budżety</h3>
+                <p>Ustawiaj limity na jedzenie, rachunki i rozrywkę. Nadawaj im priorytety.</p>
+            </div>
+            <div class="col-md-4">
+                <h3>💰 Śledź Saldo</h3>
+                <p>Rejestruj wydatki i przychody. System automatycznie wyliczy Twoje dostępne środki.</p>
+            </div>
+            <div class="col-md-4">
+                <h3>📅 Planuj Przyszłość</h3>
+                <p>Dodawaj transakcje z datą przyszłą - nie wpłyną na saldo, dopóki nie nadejdzie ich czas.</p>
+            </div>
+        </div>
+        <div class="mt-5">
+            <a class="btn btn-primary btn-lg me-2" asp-area="Identity" asp-page="/Account/Register">Zarejestruj się</a>
+            <a class="btn btn-outline-secondary btn-lg" asp-area="Identity" asp-page="/Account/Login">Zaloguj się</a>
+        </div>
+    </div>
 </div>
