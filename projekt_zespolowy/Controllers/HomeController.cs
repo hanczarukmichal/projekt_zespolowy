@@ -28,31 +28,44 @@ namespace projekt_zespolowy.Controllers
                 var userId = user.Id;
                 var now = DateTime.Now;
 
-                // 1. Pobierz WSZYSTKIE transakcje
                 var allTransactions = await _context.Transactions
                     .Where(t => t.ApplicationUserId == userId)
                     .ToListAsync();
 
-                // Saldo: Przychody - Wydatki (tylko te, które ju¿ nast¹pi³y <= now)
                 decimal balance = allTransactions
                     .Where(t => t.Date <= now && t.Type == TransactionType.Income).Sum(t => t.Amount) -
                     allTransactions
                     .Where(t => t.Date <= now && t.Type == TransactionType.Expense).Sum(t => t.Amount);
 
-                // 2. Ostatnie transakcje (w tym przysz³e/zaplanowane)
                 var recentTransactions = allTransactions
                     .OrderByDescending(t => t.Date)
                     .Take(5)
                     .ToList();
 
-                // 3. Bud¿ety posortowane po PRIORYTECIE (Wysoki -> Niski)
                 var budgets = await _context.Budgets
                     .Include(b => b.Category)
                     .Where(b => b.ApplicationUserId == userId && b.Month.Month == now.Month && b.Month.Year == now.Year)
                     .OrderByDescending(b => b.Priority)
-                    .ThenByDescending(b => b.Amount)
                     .ToListAsync();
 
+                var today = DateTime.Today;
+                var monthAgo = today.AddDays(-30);
+
+                var chartData = new List<object>();
+
+                for (var date = monthAgo; date <= today; date = date.AddDays(1))
+                {
+                    var dayTrans = allTransactions.Where(t => t.Date.Date == date).ToList();
+
+                    chartData.Add(new
+                    {
+                        Date = date.ToString("dd.MM"),
+                        Income = dayTrans.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount),
+                        Expense = dayTrans.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount)
+                    });
+                }
+
+                ViewData["ChartData"] = System.Text.Json.JsonSerializer.Serialize(chartData);
                 ViewData["MainBalance"] = balance;
                 ViewData["RecentTransactions"] = recentTransactions;
                 ViewData["Budgets"] = budgets;
@@ -69,5 +82,6 @@ namespace projekt_zespolowy.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
     }
 }

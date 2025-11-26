@@ -31,6 +31,17 @@
         <h2>Witaj, <span class="text-primary">@User.Identity.Name</span>!</h2>
     </div>
 
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white fw-bold">
+            Przepływ Gotówki (Ostatnie 30 dni)
+        </div>
+        <div class="card-body">
+            <div style="height: 300px; width: 100%;">
+                <canvas id="dashboardChart"></canvas>
+            </div>
+        </div>
+    </div>
+
     <div class="card text-center bg-light shadow mb-4 border-primary">
         <div class="card-body py-5">
             <h5 class="card-title text-muted text-uppercase">Dostępne Środki</h5>
@@ -123,3 +134,73 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const rawData = @Html.Raw(ViewData["ChartData"] ?? "[]");
+
+        if (rawData.length > 0) {
+            const ctx = document.getElementById('dashboardChart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: rawData.map(x => x.Date),
+                    datasets: [
+                        {
+                            label: 'Przychody',
+                            data: rawData.map(x => x.Income),
+                            backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                            borderColor: '#28a745',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Wydatki',
+                            data: rawData.map(x => x.Expense),
+                            backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                            borderColor: '#dc3545',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) { return value + ' zł'; }
+                            }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
