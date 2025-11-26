@@ -27,13 +27,51 @@ namespace projekt_zespolowy.Controllers
         private string GetCurrentUserId() => _userManager.GetUserId(User);
 
         // GET: Transactions
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString, int? categoryId, DateTime? dateFrom, DateTime? dateTo)
         {
             var userId = GetCurrentUserId();
+
             var transactions = _context.Transactions
                 .Include(t => t.Category)
                 .Where(t => t.ApplicationUserId == userId)
-                .OrderByDescending(t => t.Date);
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                if (decimal.TryParse(searchString, out decimal amount))
+                {
+                    transactions = transactions.Where(t => t.Amount == amount || t.Description.Contains(searchString));
+                }
+                else
+                {
+                    transactions = transactions.Where(t => t.Description.Contains(searchString));
+                }
+            }
+
+            if (categoryId.HasValue)
+            {
+                transactions = transactions.Where(t => t.CategoryId == categoryId);
+            }
+
+            if (dateFrom.HasValue)
+            {
+                transactions = transactions.Where(t => t.Date >= dateFrom.Value);
+            }
+
+            if (dateTo.HasValue)
+            {
+                transactions = transactions.Where(t => t.Date <= dateTo.Value);
+            }
+
+            transactions = transactions.OrderByDescending(t => t.Date);
+
+            ViewData["CurrentFilter"] = searchString;
+            ViewData["DateFrom"] = dateFrom?.ToString("yyyy-MM-dd");
+            ViewData["DateTo"] = dateTo?.ToString("yyyy-MM-dd");
+            ViewData["SelectedCategoryId"] = categoryId;
+
+            ViewData["Categories"] = new SelectList(_context.Categories.Where(c => c.ApplicationUserId == userId), "Id", "Name", categoryId);
+
             return View(await transactions.ToListAsync());
         }
 
@@ -78,6 +116,5 @@ namespace projekt_zespolowy.Controllers
             return View(transaction);
         }
 
-        // ... (Reszta metod: Details, Edit, Delete analogicznie do poprzednich wersji)
     }
 }
