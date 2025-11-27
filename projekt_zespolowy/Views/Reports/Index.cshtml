@@ -1,0 +1,161 @@
+﻿@model projekt_zespolowy.ViewModels.FinancialReportViewModel
+@using projekt_zespolowy.Models
+
+@{
+    ViewData["Title"] = "Raporty Finansowe";
+    var labelsJson = Newtonsoft.Json.JsonConvert.SerializeObject(Model.Data.Select(x => x.CategoryName));
+    var dataJson = Newtonsoft.Json.JsonConvert.SerializeObject(Model.Data.Select(x => x.TotalAmount));
+}
+
+<div class="container-fluid py-4">
+    <h2 class="mb-4 text-center">📊 Raport Finansowy</h2>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body bg-light">
+            <form asp-action="Index" method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label asp-for="StartDate" class="form-label fw-bold text-muted small">OD DATY</label>
+                    <input asp-for="StartDate" class="form-control" type="date" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="EndDate" class="form-label fw-bold text-muted small">DO DATY</label>
+                    <input asp-for="EndDate" class="form-control" type="date" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="ReportType" class="form-label fw-bold text-muted small">TYP RAPORTU</label>
+                    <select asp-for="ReportType" asp-items="Html.GetEnumSelectList<TransactionType>()" class="form-select"></select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">
+                        <i class="fas fa-filter me-2"></i> Generuj Raport
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model.Data.Any())
+    {
+        <div class="row">
+            <div class="col-lg-5 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white fw-bold">Szczegóły operacji</div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Kategoria</th>
+                                    <th class="text-end">Kwota</th>
+                                    <th class="text-end text-muted small">%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var total = Model.Data.Sum(x => x.TotalAmount);
+                                }
+                                @foreach (var item in Model.Data)
+                                {
+                                    var percent = total > 0 ? (item.TotalAmount / total) * 100 : 0;
+                                    <tr>
+                                        <td>@item.CategoryName</td>
+                                        <td class="text-end fw-bold">@item.TotalAmount.ToString("C")</td>
+                                        <td class="text-end text-muted small">@percent.ToString("F1")%</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-light fw-bold">
+                                    <td>SUMA CAŁKOWITA</td>
+                                    <td class="text-end text-primary">@total.ToString("C")</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">Wizualizacja graficzna</span>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-secondary active" id="btnPie" onclick="setChartType('doughnut')">Kołowy</button>
+                            <button type="button" class="btn btn-outline-secondary" id="btnBar" onclick="setChartType('bar')">Słupkowy</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div style="position: relative; height: 400px; width: 100%;">
+                            <canvas id="myChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center py-5">
+            <h4>Brak danych do wyświetlenia</h4>
+            <p>Zmień filtry lub dodaj nowe transakcje.</p>
+        </div>
+    }
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('myChart');
+    let myChart = null;
+    const labels = @Html.Raw(labelsJson);
+    const data = @Html.Raw(dataJson);
+
+    const backgroundColors = [
+        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
+        '#858796', '#5a5c69', '#fd7e14', '#20c997', '#6f42c1'
+    ];
+
+    function createChart(type) {
+        if (myChart) myChart.destroy();
+
+        const config = {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Kwota (PLN)',
+                    data: data,
+                    backgroundColor: type === 'bar' ? '#4e73df' : backgroundColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        display: type !== 'bar' 
+                    }
+                },
+                scales: type === 'bar' ? {
+                    y: { beginAtZero: true }
+                } : {}
+            }
+        };
+
+        myChart = new Chart(ctx, config);
+    }
+
+    function setChartType(type) {
+        
+        document.getElementById('btnPie').classList.toggle('active', type === 'doughnut');
+        document.getElementById('btnBar').classList.toggle('active', type === 'bar');
+
+        createChart(type);
+    }
+
+    // Start
+    if (labels.length > 0) {
+        createChart('doughnut');
+    }
+</script>

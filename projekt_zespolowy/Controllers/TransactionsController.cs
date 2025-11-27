@@ -79,6 +79,7 @@ namespace projekt_zespolowy.Controllers
         public IActionResult Create()
         {
             var userId = GetCurrentUserId();
+           
             ViewData["CategoryId"] = new SelectList(_context.Categories.Where(c => c.ApplicationUserId == userId), "Id", "Name");
             return View();
         }
@@ -93,13 +94,6 @@ namespace projekt_zespolowy.Controllers
 
             transaction.ApplicationUserId = user.Id;
 
-            // Dla przychodu kategoria nie jest wymagana -> ustawiamy na null
-            if (transaction.Type == TransactionType.Income)
-            {
-                transaction.CategoryId = null;
-                ModelState.Remove("CategoryId");
-                ModelState.Remove("Category");
-            }
 
             ModelState.Remove("ApplicationUser");
             ModelState.Remove("ApplicationUserId");

@@ -1,83 +1,63 @@
 ﻿@model projekt_zespolowy.Models.Transaction
-@using projekt_zespolowy.Models
 
 @{
-    ViewData["Title"] = "Dodaj Transakcję";
+    ViewData["Title"] = "Nowa Transakcja";
 }
 
-<div class="card shadow mt-4">
-    <div class="card-header bg-success text-white">
-        <h4>Nowa Transakcja</h4>
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Dodaj nową transakcję</h4>
     </div>
     <div class="card-body">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-            <div class="mb-3">
-                <label asp-for="Amount" class="form-label fw-bold">Kwota</label>
-                <input asp-for="Amount" class="form-control form-control-lg" placeholder="0.00" />
-                <span asp-validation-for="Amount" class="text-danger"></span>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Description" class="form-label fw-bold">Opis</label>
+                    <input asp-for="Description" class="form-control" placeholder="Np. Zakupy spożywcze" />
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Amount" class="form-label fw-bold">Kwota (PLN)</label>
+                    <input asp-for="Amount" class="form-control" type="number" step="0.01" placeholder="0.00" />
+                    <span asp-validation-for="Amount" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Date" class="form-label fw-bold">Data</label>
+                    <input asp-for="Date" class="form-control" />
+                    <span asp-validation-for="Date" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Type" class="form-label fw-bold">Typ transakcji</label>
+                    <select asp-for="Type" class="form-select" asp-items="Html.GetEnumSelectList<projekt_zespolowy.Models.TransactionType>()"></select>
+                    <span asp-validation-for="Type" class="text-danger"></span>
+                </div>
             </div>
 
             <div class="mb-3">
-                <label class="form-label fw-bold">Typ Transakcji</label>
-                <select asp-for="Type" class="form-select" id="typeSelect" onchange="toggleCategory()">
-                    <option value="@TransactionType.Expense">📉 Wydatek</option>
-                    <option value="@TransactionType.Income">📈 Przychód</option>
+                <label asp-for="CategoryId" class="form-label fw-bold">Kategoria</label>
+                <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId">
+                    <option value="">-- Wybierz kategorię --</option>
                 </select>
+                <div class="form-text">Wybierz kategorię zarówno dla wydatków, jak i przychodów (np. Wypłata, Premia).</div>
             </div>
 
-            <div class="mb-3" id="categoryDiv">
-                <label class="form-label fw-bold">Kategoria Budżetu</label>
-                <div class="input-group">
-                    <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId">
-                        <option value="">-- Wybierz Budżet --</option>
-                    </select>
-                    <a asp-controller="Budgets" asp-action="Create" class="btn btn-outline-secondary">+ Nowy Budżet</a>
-                </div>
-                <div class="form-text">Wybierz budżet, który zostanie obciążony.</div>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a asp-action="Index" class="btn btn-secondary me-md-2">Anuluj</a>
+                <input type="submit" value="Zapisz transakcję" class="btn btn-success px-4" />
             </div>
-
-            <div class="mb-3">
-                <label asp-for="Date" class="form-label fw-bold">Data</label>
-                <div class="input-group">
-                    <input asp-for="Date" class="form-control" id="dateInput" />
-                    <button type="button" class="btn btn-outline-primary" onclick="setToday()">Dzisiaj</button>
-                </div>
-                <span asp-validation-for="Date" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Description" class="form-label">Opis (opcjonalnie)</label>
-                <textarea asp-for="Description" class="form-control" rows="2"></textarea>
-            </div>
-
-            <button type="submit" class="btn btn-success w-100 btn-lg">Zapisz</button>
         </form>
     </div>
 </div>
 
-<script>
-    function toggleCategory() {
-        var type = document.getElementById("typeSelect").value;
-        var catDiv = document.getElementById("categoryDiv");
-        // W C# Enum: Income to zazwyczaj 0, Expense 1 (lub odwrotnie, zależy od definicji).
-        // Tutaj Value w select będzie tekstem "Income" lub "Expense"
-        if (type === "Income") {
-            catDiv.style.display = "none";
-        } else {
-            catDiv.style.display = "block";
-        }
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-
-    function setToday() {
-        var now = new Date();
-        // Formatowanie daty pod input type="datetime-local"
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        document.getElementById("dateInput").value = now.toISOString().slice(0,16);
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
-         toggleCategory();
-    });
-</script>
+}
