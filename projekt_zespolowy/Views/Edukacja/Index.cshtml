@@ -1,0 +1,123 @@
+﻿@{
+    ViewData["Title"] = "Edukacja Finansowa";
+}
+
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <h1 class="display-4">Centrum Wiedzy Finansowej</h1>
+        <p class="lead">Wybierz odpowiednią strefę, aby dowiedzieć się więcej o zarządzaniu pieniędzmi.</p>
+    </div>
+
+    <ul class="nav nav-pills nav-fill mb-4" id="pills-tab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pills-dzieci-tab" data-bs-toggle="pill" data-bs-target="#pills-dzieci" type="button" role="tab" aria-controls="pills-dzieci" aria-selected="true">
+                <i class="bi bi-emoji-smile"></i> Strefa dla Dzieci
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pills-dorosli-tab" data-bs-toggle="pill" data-bs-target="#pills-dorosli" type="button" role="tab" aria-controls="pills-dorosli" aria-selected="false">
+                <i class="bi bi-briefcase"></i> Strefa dla Dorosłych
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="pills-tabContent">
+
+        <div class="tab-pane fade show active" id="pills-dzieci" role="tabpanel" aria-labelledby="pills-dzieci-tab">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm border-primary">
+                        <img src="https://placehold.co/600x300/orange/white?text=Metoda+Sloikow" class="card-img-top" alt="Słoiki">
+                        <div class="card-body">
+                            <h3 class="card-title text-primary">Metoda 3 Słoików</h3>
+                            <p class="card-text">Najlepszy sposób na start! Podziel swoje kieszonkowe na 3 słoiki (lub koperty):</p>
+                            <ul>
+                                <li><strong>Wydatki (50%):</strong> Na słodycze, zabawki, kino – to, co chcesz kupić teraz.</li>
+                                <li><strong>Oszczędności (40%):</strong> Na większy cel (np. rower, konsola). Tego słoika nie ruszamy!</li>
+                                <li><strong>Pomaganie (10%):</strong> Na prezent dla kogoś bliskiego lub pomoc zwierzętom.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm border-info">
+                        <img src="https://placehold.co/600x300/blue/white?text=Potrzeba+vs+Zachcianka" class="card-img-top" alt="Zakupy">
+                        <div class="card-body">
+                            <h3 class="card-title text-info">Potrzeba czy Zachcianka?</h3>
+                            <p class="card-text">Zanim coś kupisz, zadaj sobie magiczne pytanie: <em>"Czy ja tego potrzebuję, żeby żyć, czy tylko bardzo chcę to mieć?"</em></p>
+                            <div class="alert alert-light">
+                                <strong>🛒 Potrzeba:</strong> Jedzenie, buty na zimę, zeszyt do szkoły.<br />
+                                <strong>🎮 Zachcianka:</strong> Kolejna gra, batonik, 5-ty zestaw klocków.
+                            </div>
+                            <p class="small text-muted">Rada: Jeśli to zachcianka, odczekaj 3 dni. Często chęć zakupu sama przechodzi!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-light mt-3 p-4 text-center">
+                <h4>💡 Ciekawostka</h4>
+                <p>Czy wiesz, że pieniądze na koncie w banku też "pracują"? Jeśli wpłacisz je na konto oszczędnościowe, bank co miesiąc doda Ci do nich małą kwotę (odsetki) jako nagrodę za cierpliwość!</p>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="pills-dorosli" role="tabpanel" aria-labelledby="pills-dorosli-tab">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            Złota zasada budżetu: 50 / 30 / 20
+                        </div>
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-4">
+                                    <img src="https://placehold.co/200x200/green/white?text=50+30+20" class="img-fluid rounded-circle mb-3" alt="Wykres">
+                                </div>
+                                <div class="col-md-8">
+                                    <p>Najprostsza metoda na utrzymanie stabilności finansowej. Podziel swój miesięczny dochód netto:</p>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item"><strong>50% - Potrzeby:</strong> Czynsz, rachunki, jedzenie, leki. To, co niezbędne.</li>
+                                        <li class="list-group-item"><strong>30% - Przyjemności:</strong> Wyjścia, hobby, Netflix, wakacje. Życie to nie tylko praca!</li>
+                                        <li class="list-group-item"><strong>20% - Oszczędności i Długi:</strong> Spłata kredytów, poduszka finansowa, emerytura.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header bg-dark text-white">
+                            Współdzielenie rachunków w domu
+                        </div>
+                        <div class="card-body">
+                            <h5>Dlaczego warto?</h5>
+                            <p>Wspólne zarządzanie budżetem zwiększa transparentność i zaufanie w związku. Pozwala szybciej realizować wspólne cele (np. zakup mieszkania).</p>
+                            <hr />
+                            <h5>Jak to robić mądrze?</h5>
+                            <ul>
+                                <li><strong>Model "Wspólny Wór":</strong> Wszystkie dochody na jedno konto. Wymaga 100% zaufania.</li>
+                                <li><strong>Model Proporcjonalny:</strong> Zrzucamy się na rachunki proporcjonalnie do zarobków (kto zarabia więcej, płaci większą część czynszu).</li>
+                                <li><strong>Aplikacje:</strong> Używajcie apek typu Splitwise do notowania, kto zapłacił za zakupy w Biedronce, by uniknąć kłótni "ja zawsze płacę".</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card bg-warning text-dark mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">🚨 Uwaga na "Drobne Wydatki"</h5>
+                            <p class="card-text">Kawa na mieście codziennie (15 zł) to w skali roku ponad <strong>5000 zł</strong>! Sprawdzaj swoje subskrypcje – czy na pewno oglądasz wszystkie 4 serwisy streamingowe, które opłacasz?</p>
+                        </div>
+                    </div>
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Mądre Zakupy</h5>
+                            <p>Zawsze rób listę zakupów. Nigdy nie chodź do sklepu głodny – statystycznie kupujesz wtedy 20% więcej niepotrzebnych rzeczy!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

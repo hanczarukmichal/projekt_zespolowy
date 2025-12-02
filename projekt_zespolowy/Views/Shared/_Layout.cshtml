@@ -13,6 +13,7 @@
 <body>
     <div class="d-flex" id="wrapper">
 
+        <!-- Sidebar -->
         <div id="sidebar-wrapper">
             <div class="sidebar-heading">
                 <i class="fas fa-wallet me-2"></i>SmartBudget
@@ -21,7 +22,7 @@
                 <a asp-controller="Home" asp-action="Index" class="list-group-item list-group-item-action bg-transparent">
                     <i class="fas fa-home me-3" style="width: 20px;"></i>Pulpit
                 </a>
-                <a asp-controller="Transactions" asp-actsion="Index" class="list-group-item list-group-item-action bg-transparent">
+                <a asp-controller="Transactions" asp-action="Index" class="list-group-item list-group-item-action bg-transparent">
                     <i class="fas fa-exchange-alt me-3" style="width: 20px;"></i>Transakcje
                 </a>
                 <a asp-controller="Budgets" asp-action="Index" class="list-group-item list-group-item-action bg-transparent">
@@ -33,8 +34,14 @@
                 <a asp-controller="Reports" asp-action="Index" class="list-group-item list-group-item-action bg-transparent">
                     <i class="fas fa-chart-pie me-3" style="width: 20px;"></i>Raporty
                 </a>
+                <!-- Nowa zakladka Edukacja -->
+                <a asp-controller="Edukacja" asp-action="Index" class="list-group-item list-group-item-action bg-transparent">
+                    <i class="fas fa-graduation-cap me-3" style="width: 20px;"></i>Edukacja
+                </a>
             </div>
         </div>
+        <!-- /#sidebar-wrapper -->
+        <!-- Page Content -->
         <div id="page-content-wrapper">
 
             <nav class="navbar navbar-expand-lg navbar-light top-navbar">
@@ -61,6 +68,8 @@
                 </main>
             </div>
         </div>
+        <!-- /#page-content-wrapper -->
+
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
