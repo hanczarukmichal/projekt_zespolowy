@@ -14,6 +14,10 @@ namespace projekt_zespolowy.Data
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Budget> Budgets { get; set; }
+
+        // Dodana tabela dla Długów i Pożyczek
+        public DbSet<Liability> Liabilities { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -24,14 +28,14 @@ namespace projekt_zespolowy.Data
                 .HasForeignKey(t => t.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            
+
             builder.Entity<Budget>()
                 .HasOne(b => b.Category)
                 .WithMany()
                 .HasForeignKey(b => b.CategoryId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            
+
             builder.Entity<Budget>()
                 .HasOne(b => b.ApplicationUser)
                 .WithMany()

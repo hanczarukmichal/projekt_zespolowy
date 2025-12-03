@@ -1,0 +1,138 @@
+﻿@model IEnumerable<projekt_zespolowy.Models.Liability>
+
+@{
+    ViewData["Title"] = "Długi i Pożyczki";
+    // Rozdzielamy dane na dwa typy, aby wyświetlić je w oddzielnych sekcjach
+    var loans = Model.Where(x => x.Type == projekt_zespolowy.Models.LiabilityType.BankLoan);
+    var debts = Model.Where(x => x.Type == projekt_zespolowy.Models.LiabilityType.FriendDebt);
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-hand-holding-usd text-danger"></i> Długi i Pożyczki</h2>
+        <a asp-action="Create" class="btn btn-success shadow-sm"><i class="fas fa-plus"></i> Dodaj Nowe</a>
+    </div>
+
+    <!-- Sekcja 1: Pożyczki Bankowe / Ratalne -->
+    <div class="card mb-4 border-0 shadow-sm bg-light">
+        <div class="card-body">
+            <h4 class="card-title text-secondary mb-3"><i class="fas fa-university me-2"></i>Moje Pożyczki (Raty)</h4>
+
+            <div class="row">
+                @if (!loans.Any())
+                {
+                    <div class="col-12"><p class="text-muted fst-italic">Brak aktywnych pożyczek bankowych. Oby tak dalej! 🎉</p></div>
+                }
+                @foreach (var item in loans)
+                {
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm border-danger h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <h5 class="card-title fw-bold">@item.Title</h5>
+                                    <span class="badge bg-danger">Kredyt</span>
+                                </div>
+
+                                <h3 class="my-3 text-center text-dark">
+                                    @((item.TotalAmount - item.PaidAmount).ToString("C"))
+                                    <small class="text-muted fs-6 d-block">pozostało do spłaty</small>
+                                </h3>
+
+                                <!-- Pasek Postępu -->
+                                <div class="progress mb-2" style="height: 20px;">
+                                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: @item.ProgressPercentage%;" aria-valuenow="@item.ProgressPercentage" aria-valuemin="0" aria-valuemax="100">
+                                        @item.ProgressPercentage%
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between text-muted small mb-3">
+                                    <span>Zapłacono: @item.PaidAmount.ToString("C")</span>
+                                    <span>Całość: @item.TotalAmount.ToString("C")</span>
+                                </div>
+
+                                @if (item.MonthlyInstallment.HasValue)
+                                {
+                                    <div class="alert alert-light border d-flex justify-content-between align-items-center p-2 mt-auto">
+                                        <span>Rata: <strong>@item.MonthlyInstallment.Value.ToString("C")</strong></span>
+                                        <form asp-action="PayInstallment" asp-route-id="@item.Id" method="post">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">Zapłać ratę</button>
+                                        </form>
+                                    </div>
+                                }
+
+                                @if (item.EndDate.HasValue)
+                                {
+                                    <div class="text-end text-muted small mt-2">
+                                        <i class="far fa-calendar-alt"></i> Koniec: @item.EndDate.Value.ToShortDateString()
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Sekcja 2: Długi Koleżeńskie -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title text-secondary mb-3"><i class="fas fa-users me-2"></i>Długi u Znajomych</h4>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Dla kogo / Cel</th>
+                            <th>Termin</th>
+                            <th>Kwota</th>
+                            <th>Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!debts.Any())
+                        {
+                            <tr><td colspan="4" class="text-center text-muted py-4">Nikomu nic nie wisisz! 👍</td></tr>
+                        }
+                        @foreach (var item in debts)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@item.Title</strong>
+                                    @if (!string.IsNullOrEmpty(item.Description))
+                                    {
+                                        <div class="small text-muted">@item.Description</div>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.EndDate.HasValue)
+                                    {
+                                        var daysLeft = (item.EndDate.Value - DateTime.Now).Days;
+                                        <span class="@(daysLeft < 3 ? "text-danger fw-bold" : "text-dark")">
+                                            @item.EndDate.Value.ToShortDateString()
+                                            (@(daysLeft < 0 ? "Po terminie!" : $"{daysLeft} dni"))
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+                                </td>
+                                <td class="fw-bold text-danger">@item.TotalAmount.ToString("C")</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        @if (item.ReminderEnabled)
+                                        {
+                                            <span class="text-warning me-3" title="Przypomnienia włączone"><i class="fas fa-bell"></i></span>
+                                        }
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-success" onclick="return confirm('Czy na pewno spłaciłeś ten dług? Zostanie on usunięty z listy.');">
+                                            <i class="fas fa-check me-1"></i> Oddane
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

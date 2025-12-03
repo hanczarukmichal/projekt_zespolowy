@@ -1,0 +1,132 @@
+﻿@model projekt_zespolowy.Models.Liability
+@using projekt_zespolowy.Models
+
+@{
+    ViewData["Title"] = "Dodaj Zobowiązanie";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Nowe Zobowiązanie</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-4">
+                            <label asp-for="Type" class="form-label fw-bold">Co chcesz dodać?</label>
+                            <select asp-for="Type" class="form-select form-select-lg" id="liabilityType">
+                                <option value="@LiabilityType.BankLoan">Pożyczka Bankowa / Ratalna</option>
+                                <option value="@LiabilityType.FriendDebt">Dług u znajomego</option>
+                            </select>
+                            <div class="form-text">Wybierz typ, aby dostosować formularz.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label fw-bold"></label>
+                            <input asp-for="Title" class="form-control" placeholder="np. Kredyt hipoteczny, 50 zł dla Michała" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="TotalAmount" class="form-label"></label>
+                                <div class="input-group">
+                                    <input asp-for="TotalAmount" class="form-control" type="number" step="0.01" placeholder="0.00" />
+                                    <span class="input-group-text">PLN</span>
+                                </div>
+                                <span asp-validation-for="TotalAmount" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="PaidAmount" class="form-label"></label>
+                                <div class="input-group">
+                                    <input asp-for="PaidAmount" class="form-control" type="number" step="0.01" value="0" />
+                                    <span class="input-group-text">PLN</span>
+                                </div>
+                                <div class="form-text">Ile już oddałeś? (Zazwyczaj 0 na start)</div>
+                            </div>
+                        </div>
+
+                        <!-- Sekcja widoczna tylko dla Pożyczek Bankowych -->
+                        <div id="bankSection" class="p-3 mb-3 bg-light rounded border">
+                            <h6 class="text-primary mb-3"><i class="fas fa-university me-2"></i>Szczegóły kredytu</h6>
+                            <div class="mb-3">
+                                <label asp-for="MonthlyInstallment" class="form-label">Wysokość miesięcznej raty</label>
+                                <div class="input-group">
+                                    <input asp-for="MonthlyInstallment" class="form-control" type="number" step="0.01" />
+                                    <span class="input-group-text">PLN</span>
+                                </div>
+                                <small class="text-muted">Dzięki temu będziesz mógł jednym klikiem odnotować spłatę raty.</small>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="StartDate" class="form-label">Data zaciągnięcia</label>
+                                <input asp-for="StartDate" class="form-control" type="date" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="EndDate" class="form-label">Termin spłaty (opcjonalnie)</label>
+                                <input asp-for="EndDate" class="form-control" type="date" />
+                            </div>
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" asp-for="ReminderEnabled" id="reminderCheck" />
+                            <label class="form-check-label" for="reminderCheck">
+                                <i class="fas fa-bell text-warning me-1"></i> Włącz przypomnienia
+                            </label>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Description" class="form-label">Notatki / Opis</label>
+                            <textarea asp-for="Description" class="form-control" rows="2" placeholder="Dodatkowe informacje, numer konta do spłaty itp."></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-outline-secondary me-md-2">Anuluj</a>
+                            <button type="submit" class="btn btn-primary px-5">Zapisz</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Prosty skrypt JavaScript do dynamicznego pokazywania/ukrywania pól
+        document.addEventListener("DOMContentLoaded", function() {
+            var typeSelect = document.getElementById('liabilityType');
+            var bankSection = document.getElementById('bankSection');
+
+            function toggleBankSection() {
+                // Sprawdzamy czy wybrano 'BankLoan' (w enumie to zazwyczaj wartość 0 lub nazwa,
+                // w HTML helperze ASP.NET enum jest renderowany jako value="BankLoan" lub "0")
+                // Tutaj sprawdzamy tekst lub value zależnie od renderowania,
+                // ale najbezpieczniej sprawdzić po prostu czy to pierwsza opcja.
+
+                // Dla pewności w C# BankLoan = 0, FriendDebt = 1
+                if (typeSelect.value === 'BankLoan' || typeSelect.value === '0') {
+                    bankSection.style.display = 'block';
+                } else {
+                    bankSection.style.display = 'none';
+                }
+            }
+
+            // Nasłuchuj zmiany
+            typeSelect.addEventListener('change', toggleBankSection);
+
+            // Uruchom raz na starcie (żeby ustawić poprawny stan przy odświeżeniu/edycji)
+            toggleBankSection();
+        });
+    </script>
+}
