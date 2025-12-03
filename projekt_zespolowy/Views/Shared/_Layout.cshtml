@@ -7,16 +7,13 @@
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-
-    <!-- FontAwesome (ikony) -->
+    <!-- Ikony FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
     <div class="d-flex" id="wrapper">
 
-        <!-- ========================================= -->
-        <!-- POCZĄTEK PASKA BOCZNEGO (SIDEBAR)         -->
-        <!-- ========================================= -->
+        <!-- Pasek boczny (Sidebar) -->
         <div id="sidebar-wrapper">
             <div class="sidebar-heading">
                 <i class="fas fa-wallet me-2"></i>SmartBudget
@@ -32,7 +29,7 @@
                     <i class="fas fa-piggy-bank me-3" style="width: 20px;"></i>Budżety
                 </a>
 
-                <!-- TUTAJ JEST NOWY LINK DO DŁUGÓW -->
+                <!-- DŁUGI I POŻYCZKI -->
                 <a asp-controller="Liabilities" asp-action="Index" class="list-group-item list-group-item-action bg-transparent">
                     <i class="fas fa-hand-holding-usd me-3" style="width: 20px;"></i>Długi i Pożyczki
                 </a>
@@ -44,17 +41,21 @@
                     <i class="fas fa-chart-pie me-3" style="width: 20px;"></i>Raporty
                 </a>
 
-                <!-- TUTAJ JEST LINK DO EDUKACJI -->
+                <!-- EDUKACJA -->
                 <a asp-controller="Edukacja" asp-action="Index" class="list-group-item list-group-item-action bg-transparent">
                     <i class="fas fa-graduation-cap me-3" style="width: 20px;"></i>Edukacja
                 </a>
+
+                <!-- USTAWIENIA (NOWE) -->
+                <a asp-controller="Settings" asp-action="Index" class="list-group-item list-group-item-action bg-transparent">
+                    <i class="fas fa-cog me-3" style="width: 20px;"></i>Ustawienia
+                </a>
             </div>
         </div>
-        <!-- KONIEC PASKA BOCZNEGO -->
-        <!-- Page Content Wrapper -->
+        <!-- /#sidebar-wrapper -->
+        <!-- Główna zawartość strony -->
         <div id="page-content-wrapper">
 
-            <!-- Górny pasek nawigacji (Navbar) -->
             <nav class="navbar navbar-expand-lg navbar-light top-navbar">
                 <div class="container-fluid">
                     <button class="btn btn-outline-secondary" id="menu-toggle">
@@ -73,20 +74,21 @@
                 </div>
             </nav>
 
-            <!-- Główna zawartość strony -->
             <div class="container-fluid p-4">
                 <main role="main">
                     @RenderBody()
                 </main>
             </div>
         </div>
+        <!-- /#page-content-wrapper -->
+
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
-    <!-- Skrypt do wysuwania/chowania menu -->
+    <!-- Skrypt do obsługi chowania/wysuwania menu -->
     <script>
         var el = document.getElementById("wrapper");
         var toggleButton = document.getElementById("menu-toggle");
