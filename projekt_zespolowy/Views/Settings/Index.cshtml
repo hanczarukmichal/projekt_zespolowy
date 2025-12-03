@@ -1,0 +1,105 @@
+﻿@model projekt_zespolowy.Models.SettingsViewModel
+
+@{
+    ViewData["Title"] = "Ustawienia Konta";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white d-flex align-items-center">
+                    <i class="fas fa-cog fa-lg me-2"></i>
+                    <h4 class="mb-0">Ustawienia Profilu</h4>
+                </div>
+                <div class="card-body">
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <!-- To miejsce wyświetli ewentualne błędy, np. gdyby plik był za duży -->
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                    <!-- enctype jest KLUCZOWY do przesyłania plików (zdjęć) -->
+                    <form asp-action="Update" enctype="multipart/form-data" method="post">
+
+                        <!-- Sekcja Awatara -->
+                        <div class="text-center mb-4">
+                            <div class="mb-3">
+                                @if (!string.IsNullOrEmpty(Model.CurrentAvatarPath))
+                                {
+                                    <!-- Wyświetlamy aktualny awatar -->
+                                    <img src="~/uploads/avatars/@Model.CurrentAvatarPath" class="rounded-circle shadow-sm" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #f8f9fa;" alt="Twój awatar" />
+                                }
+                                else
+                                {
+                                    <!-- Placeholder, jeśli brak zdjęcia -->
+                                    <img src="https://placehold.co/150x150/e9ecef/6c757d?text=Brak+Foto" class="rounded-circle shadow-sm" style="width: 150px; height: 150px; object-fit: cover;" alt="Domyślny awatar" />
+                                }
+                            </div>
+                            <div class="d-flex justify-content-center">
+                                <div class="col-md-8">
+                                    <label asp-for="AvatarFile" class="form-label small text-muted">Zmień zdjęcie profilowe</label>
+                                    <input asp-for="AvatarFile" class="form-control form-control-sm" type="file" accept="image/*" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <!-- Sekcja Danych -->
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="UserName" class="form-label fw-bold">Nazwa użytkownika (Login)</label>
+                                <!-- Używamy 'readonly' zamiast 'disabled' - dzięki temu wartość jest przesyłana do kontrolera -->
+                                <input asp-for="UserName" class="form-control bg-light" readonly />
+                                <small class="text-muted">Login jest stały.</small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label fw-bold">Numer telefonu</label>
+                                <!-- oninput: to zabezpieczenie JS, które na żywo usuwa litery -->
+                                <input asp-for="PhoneNumber" class="form-control"
+                                       placeholder="np. 123456789"
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="BirthDate" class="form-label fw-bold">Data urodzenia</label>
+                                <input asp-for="BirthDate" class="form-control" type="date" />
+                                <span asp-validation-for="BirthDate" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i> Zapisz zmiany
+                            </button>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-light text-muted">Wróć do pulpitu</a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+            <div class="text-center mt-3">
+                <a href="/Identity/Account/Manage/ChangePassword" class="text-decoration-none text-muted small">
+                    <i class="fas fa-key"></i> Chcesz zmienić hasło? Kliknij tutaj.
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
