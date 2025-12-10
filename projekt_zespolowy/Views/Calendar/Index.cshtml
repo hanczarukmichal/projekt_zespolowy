@@ -1,0 +1,170 @@
+﻿@{
+    ViewData["Title"] = "Kalendarz Płatności";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="far fa-calendar-alt text-primary"></i> Kalendarz Płatności</h2>
+        <button class="btn btn-primary" onclick="openModalForNew()">
+            <i class="fas fa-plus"></i> Dodaj Płatność
+        </button>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <div id="calendar"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Nowa Płatność</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="eventForm">
+                    <input type="hidden" name="Id" id="eventId" value="0">
+
+                    <div class="mb-3">
+                        <label class="form-label">Nazwa</label>
+                        <input type="text" class="form-control" name="Title" id="eventTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kwota (PLN)</label>
+                        <input type="number" step="0.01" class="form-control" name="Amount" id="eventAmount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Data</label>
+                        <input type="date" class="form-control" name="Date" id="eventDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Częstotliwość</label>
+                        <select class="form-select" name="Frequency" id="eventFrequency">
+                            <option value="0">Jednorazowo</option>
+                            <option value="1">Co miesiąc</option>
+                            <option value="2">Co rok</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" name="IsPaid" id="eventIsPaid" value="true">
+                        <label class="form-check-label fw-bold" for="eventIsPaid">✅ Już zapłacone</label>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Opis (opcjonalnie)</label>
+                        <textarea class="form-control" name="Description" id="eventDescription"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-danger" id="btnDelete" style="display:none;" onclick="deleteCurrentEvent()">Usuń</button>
+                <div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEvent()">Zapisz</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+
+    <script>
+        var calendar;
+        var myModal;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+            myModal = new bootstrap.Modal(document.getElementById('eventModal'));
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'pl',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,listMonth'
+                },
+                events: '/Calendar/GetEvents',
+
+                eventClick: function (info) {
+                    openModalForEdit(info.event);
+                }
+            });
+            calendar.render();
+        });
+
+        function openModalForNew() {
+            document.getElementById('eventForm').reset();
+            document.getElementById('eventId').value = 0;
+            document.getElementById('modalTitle').innerText = "Nowa Płatność";
+            document.getElementById('btnDelete').style.display = 'none';
+            document.getElementById('eventIsPaid').checked = false;
+
+            document.getElementById('eventDate').value = new Date().toISOString().split('T')[0];
+
+            myModal.show();
+        }
+
+        function openModalForEdit(event) {
+            var props = event.extendedProps;
+
+            document.getElementById('eventId').value = event.id;
+            document.getElementById('eventTitle').value = event.title.split(' (')[0];
+            document.getElementById('eventAmount').value = props.amount;
+            document.getElementById('eventDate').value = props.originalDate;
+            document.getElementById('eventFrequency').value = props.frequency;
+            document.getElementById('eventDescription').value = props.description;
+            document.getElementById('eventIsPaid').checked = props.isPaid;
+
+            document.getElementById('modalTitle').innerText = "Edytuj Płatność";
+            document.getElementById('btnDelete').style.display = 'block';
+
+            myModal.show();
+        }
+
+        function saveEvent() {
+            var form = document.getElementById('eventForm');
+            var formData = new FormData(form);
+
+            if (!document.getElementById('eventIsPaid').checked) {
+                formData.set('IsPaid', 'false');
+            } else {
+                formData.set('IsPaid', 'true');
+            }
+
+            $.ajax({
+                url: '/Calendar/Save',
+                type: 'POST',
+                data: Object.fromEntries(formData),
+                headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+                success: function () {
+                    myModal.hide();
+                    calendar.refetchEvents();
+                },
+                error: function () {
+                    alert('Błąd zapisu.');
+                }
+            });
+        }
+
+        function deleteCurrentEvent() {
+            var id = document.getElementById('eventId').value;
+            if (confirm("Czy na pewno chcesz usunąć tę płatność?")) {
+                $.ajax({
+                    url: '/Calendar/Delete?id=' + id,
+                    type: 'POST',
+                    success: function () {
+                        myModal.hide();
+                        calendar.refetchEvents();
+                    }
+                });
+            }
+        }
+    </script>
+}

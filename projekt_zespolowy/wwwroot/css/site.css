@@ -1,18 +1,12 @@
-﻿/* =========================================
-   1. GLOBALNE TRANSITION (Płynne przejścia)
-   ========================================= */
-body, #sidebar-wrapper, .sidebar-heading, .list-group-item,
+﻿body, #sidebar-wrapper, .sidebar-heading, .list-group-item,
 .card, .card-header, .card-footer, .navbar, table, th, td,
 .form-control, .form-select, .bg-white, .bg-light, .alert {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-/* =========================================
-   2. UKŁAD I SIDEBAR (Standardowe style)
-   ========================================= */
 body {
     overflow-x: hidden;
-    background-color: #f8f9fa; /* Jasne tło domyślne */
+    background-color: #f8f9fa;
     color: #212529;
 }
 
@@ -41,21 +35,15 @@ body {
     }
 
     #sidebar-wrapper .list-group-item {
-        border: none; /* Domyślnie brak obramowania dla elementów listy */
+        border: none;
         padding: 1rem 1.5rem;
     }
 
-/* =========================================
-   3. TRYB CIEMNY (DARK MODE) - POPRAWKI
-   ========================================= */
-
-/* --- TŁO GŁÓWNE --- */
 [data-bs-theme="dark"] body {
     background-color: #121212 !important;
     color: #e0e0e0 !important;
 }
 
-/* --- NAPRAWA BIAŁYCH KART --- */
 [data-bs-theme="dark"] .card,
 [data-bs-theme="dark"] .bg-white,
 [data-bs-theme="dark"] .bg-light {
@@ -75,7 +63,6 @@ body {
     border-top: 1px solid #333 !important;
 }
 
-/* --- NAPRAWA TABEL --- */
 [data-bs-theme="dark"] .table {
     color: #e0e0e0 !important;
     border-color: #333 !important;
@@ -95,7 +82,6 @@ body {
     color: #fff !important;
 }
 
-/* --- NAPRAWA FORMULARZY --- */
 [data-bs-theme="dark"] .form-control,
 [data-bs-theme="dark"] .form-select {
     background-color: #2b2b2b !important;
@@ -113,7 +99,6 @@ body {
     color: #e0e0e0 !important;
 }
 
-/* --- NAPRAWA KOLORÓW TEKSTU --- */
 [data-bs-theme="dark"] .text-dark {
     color: #e0e0e0 !important;
 }
@@ -122,17 +107,15 @@ body {
     color: #a0a0a0 !important;
 }
 
-/* --- NAPRAWA LINKÓW --- */
 [data-bs-theme="dark"] .page-link {
     background-color: #1e1e1e;
     border-color: #333;
     color: #4e73df;
 }
 
-/* --- SIDEBAR W TRYBIE CIEMNYM (NAPRAWA LINII) --- */
 [data-bs-theme="dark"] #sidebar-wrapper {
     background-color: #1e1e1e;
-    border-right: 1px solid #333 !important; /* Ciemna linia pionowa */
+    border-right: 1px solid #333 !important;
     border-left: none !important;
     border-top: none !important;
     border-bottom: none !important;
@@ -141,14 +124,13 @@ body {
     [data-bs-theme="dark"] #sidebar-wrapper .sidebar-heading {
         background-color: #1a1a1a;
         color: #fff;
-        border-bottom: 1px solid #333 !important; /* Ciemna linia pod logiem */
+        border-bottom: 1px solid #333 !important;
     }
 
-    /* TO USUWA BIAŁE LINIE POZIOME MIĘDZY PRZYCISKAMI */
     [data-bs-theme="dark"] #sidebar-wrapper .list-group-item {
         background-color: transparent;
         color: #b0b0b0;
-        border: none !important; /* Kluczowa zmiana: usuwa białe obramowania */
+        border: none !important;
     }
 
         [data-bs-theme="dark"] #sidebar-wrapper .list-group-item:hover,
@@ -158,7 +140,6 @@ body {
             border: none !important;
         }
 
-/* --- NAVBAR GÓRNY --- */
 [data-bs-theme="dark"] .navbar {
     background-color: #1e1e1e !important;
     border-bottom: 1px solid #333 !important;
@@ -169,9 +150,6 @@ body {
     color: #e0e0e0 !important;
 }
 
-/* =========================================
-   4. TRYB JASNY (LIGHT MODE)
-   ========================================= */
 [data-bs-theme="light"] #sidebar-wrapper {
     background-color: #fff;
     color: #333;
@@ -188,9 +166,6 @@ body {
     color: #4e73df;
 }
 
-/* =========================================
-   5. RESPONSYWNOŚĆ
-   ========================================= */
 #wrapper.toggled #sidebar-wrapper {
     margin-left: -250px;
 }
@@ -204,3 +179,90 @@ body {
         margin-left: 0;
     }
 }
+
+:root {
+    --fc-border-color: #e3e6f0;
+    --fc-button-text-color: #fff;
+    --fc-button-bg-color: #4e73df;
+    --fc-button-border-color: #4e73df;
+    --fc-button-hover-bg-color: #2e59d9;
+    --fc-button-hover-border-color: #2653d4;
+    --fc-button-active-bg-color: #2e59d9;
+}
+
+[data-bs-theme="dark"] .fc {
+    --fc-page-bg-color: #1e1e1e;
+    --fc-neutral-bg-color: #2c3034;
+    --fc-list-event-hover-bg-color: #343a40;
+    --fc-border-color: #444;
+}
+
+[data-bs-theme="dark"] .fc-theme-standard td,
+[data-bs-theme="dark"] .fc-theme-standard th {
+    border-color: #444;
+}
+
+[data-bs-theme="dark"] .fc-col-header-cell-cushion,
+[data-bs-theme="dark"] .fc-daygrid-day-number,
+[data-bs-theme="dark"] .fc-list-day-text,
+[data-bs-theme="dark"] .fc-list-day-side-text {
+    color: #e0e0e0;
+    text-decoration: none;
+}
+
+[data-bs-theme="dark"] .fc-day-today {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-bs-theme="dark"] .fc-list-event:hover td {
+    background-color: #2c2c2c;
+}
+
+[data-bs-theme="dark"] .modal-content {
+    background-color: #1e1e1e;
+    border: 1px solid #444;
+    color: #e0e0e0;
+}
+
+[data-bs-theme="dark"] .modal-header,
+[data-bs-theme="dark"] .modal-footer {
+    border-color: #444;
+}
+
+[data-bs-theme="dark"] .btn-close {
+    filter: invert(1);
+}
+
+[data-bs-theme="dark"] {
+    color-scheme: dark;
+}
+
+    [data-bs-theme="dark"] ::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+    }
+
+/* Firefox */
+[data-bs-theme="dark"] {
+    scrollbar-width: thin;
+    scrollbar-color: #6c757d #1e1e1e;
+}
+
+    /* Chrome, Edge, Safari (Webkit) */
+    [data-bs-theme="dark"] ::-webkit-scrollbar {
+        width: 12px;
+    }
+
+    [data-bs-theme="dark"] ::-webkit-scrollbar-track {
+        background: #1e1e1e;
+    }
+
+    [data-bs-theme="dark"] ::-webkit-scrollbar-thumb {
+        background-color: #555;
+        border-radius: 10px;
+        border: 3px solid #1e1e1e;
+    }
+
+        [data-bs-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+            background-color: #888;
+        }

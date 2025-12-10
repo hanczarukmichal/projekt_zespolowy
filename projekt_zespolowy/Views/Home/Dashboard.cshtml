@@ -1,187 +1,223 @@
 ﻿@model IEnumerable<projekt_zespolowy.Models.Budget>
 @{
+    ViewData["Title"] = "Pulpit";
     var balance = (decimal)ViewData["MainBalance"];
     var transactions = ViewData["RecentTransactions"] as List<projekt_zespolowy.Models.Transaction>;
     var budgets = ViewData["Budgets"] as List<projekt_zespolowy.Models.Budget>;
 }
 
-
-
-<div class="container">
+<div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Witaj, <span class="text-primary">@User.Identity.Name</span>!</h2>
+        <h2>Witaj, <span class="text-primary">@User.Identity.Name</span>! 👋</h2>
+        <div class="text-muted small">
+            @DateTime.Now.ToString("dd MMMM yyyy, dddd")
+        </div>
     </div>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-white fw-bold">
-            Przepływ Gotówki (Ostatnie 30 dni)
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-chart-bar me-2 text-secondary"></i>Przepływ Gotówki (30 dni)</span>
+                </div>
+                <div class="card-body">
+                    <div style="height: 350px; width: 100%;">
+                        <canvas id="dashboardChart"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <div style="height: 300px; width: 100%;">
-                <canvas id="dashboardChart"></canvas>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                    <span><i class="far fa-calendar-check me-2 text-secondary"></i>Nadchodzące</span>
+                    <a asp-controller="Calendar" asp-action="Index" class="btn btn-sm btn-outline-primary" style="font-size: 0.75rem;">
+                        Pełny &rarr;
+                    </a>
+                </div>
+                <div class="card-body p-2">
+                    <div id="miniCalendar" style="font-size: 0.85rem;"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="card text-center bg-light shadow mb-4 border-primary">
-        <div class="card-body py-5">
-            <h5 class="card-title text-muted text-uppercase">Dostępne Środki</h5>
-            <h1 class="display-3 fw-bold @(balance >= 0 ? "text-success" : "text-danger")">
-                @balance.ToString("N2") PLN
+    <div class="card text-center bg-light shadow-sm mb-4 border-start border-5 @(balance >= 0 ? "border-success" : "border-danger")">
+        <div class="card-body py-4">
+            <h5 class="card-title text-muted text-uppercase small ls-1">Dostępne Środki</h5>
+            <h1 class="display-4 fw-bold mb-0 @(balance >= 0 ? "text-success" : "text-danger")">
+                @balance.ToString("N2") <small class="fs-4 text-muted">PLN</small>
             </h1>
         </div>
     </div>
 
     <div class="row">
-        <div class="col-md-6">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white fw-bold">
-                    Twoje Budżety (Wg Priorytetu)
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-bold border-bottom">
+                    <i class="fas fa-piggy-bank me-2 text-secondary"></i>Twoje Budżety
                 </div>
                 <div class="list-group list-group-flush">
                     @if (budgets != null && budgets.Any())
                     {
                         foreach (var b in budgets)
                         {
-                            <div class="list-group-item">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1">@b.Category.Name</h5>
-                                    <small class="badge bg-secondary">@b.Priority</small>
+                            // Obliczanie zużycia budżetu (przykład logiczny)
+                            // W przyszłości możesz tu dodać logikę pobierania faktycznych wydatków
+                            <div class="list-group-item bg-transparent">
+                                <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                                    <h6 class="mb-0 fw-bold">@b.Category.Name</h6>
+                                    <span class="badge rounded-pill bg-light text-dark border">@b.Priority</span>
                                 </div>
-                                <p class="mb-1">Limit: <strong>@b.Amount PLN</strong></p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="small text-muted">Limit: <strong>@b.Amount.ToString("N0") PLN</strong></span>
+                                    <a asp-controller="Budgets" asp-action="Edit" asp-route-id="@b.Id" class="text-decoration-none small text-primary">Edytuj</a>
+                                </div>
                             </div>
                         }
                     }
                     else
                     {
-                        <div class="p-3 text-muted">Brak budżetów na ten miesiąc.</div>
+                        <div class="p-4 text-center text-muted">
+                            <i class="fas fa-search-dollar fa-2x mb-2 d-block opacity-25"></i>
+                            Brak budżetów na ten miesiąc.
+                        </div>
                     }
                 </div>
-                <div class="card-footer bg-white text-center">
-                    <a asp-controller="Budgets" asp-action="Create" class="btn btn-sm btn-outline-primary">+ Dodaj Budżet</a>
+                <div class="card-footer bg-white text-center border-top-0">
+                    <a asp-controller="Budgets" asp-action="Create" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="fas fa-plus me-1"></i> Dodaj Budżet
+                    </a>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white fw-bold">
-                    Ostatnie Operacje
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white fw-bold border-bottom">
+                    <i class="fas fa-history me-2 text-secondary"></i>Ostatnie Operacje
                 </div>
-                <table class="table table-hover mb-0">
-                    <tbody>
-                        @if (transactions != null && transactions.Any())
-                        {
-                            foreach (var t in transactions)
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <tbody>
+                            @if (transactions != null && transactions.Any())
                             {
-                                bool isFuture = t.Date > DateTime.Now;
-                                <tr class="@(isFuture ? "table-warning" : "")">
-                                    <td>
-                                        <div class="fw-bold">
-                                            @if (t.Type == projekt_zespolowy.Models.TransactionType.Income)
-                                            {
-                                                <span>📈 Przychód</span>
-                                            }
-                                            else
-                                            {
-
-                                                <span>📉 Wydatek</span>
-                                            }
-                                        </div>
-                                        <small class="text-muted">@t.Date.ToString("yyyy-MM-dd")</small>
-                                        @if (isFuture)
-                                        {
-                                            <span class="badge bg-warning text-dark">Zaplanowane</span>
-                                        }
-                                    </td>
-                                    <td class="text-end">
-                                        <span class="@(t.Type == projekt_zespolowy.Models.TransactionType.Income ? "text-success" : "text-danger") fw-bold">
-                                            @(t.Type == projekt_zespolowy.Models.TransactionType.Income ? "+" : "-")@t.Amount
-                                        </span>
+                                foreach (var t in transactions)
+                                {
+                                    bool isFuture = t.Date > DateTime.Now;
+                                    <tr class="@(isFuture ? "table-warning" : "")">
+                                        <td class="ps-3">
+                                            <div class="fw-bold text-truncate" style="max-width: 150px;">
+                                                @if (t.Type == projekt_zespolowy.Models.TransactionType.Income)
+                                                {
+                                                    <i class="fas fa-arrow-up text-success me-1 small"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-arrow-down text-danger me-1 small"></i>
+                                                }
+                                                @(string.IsNullOrEmpty(t.Description) ? "Bez opisu" : t.Description)
+                                            </div>
+                                            <div class="small text-muted">
+                                                @t.Date.ToString("dd.MM")
+                                                @if (isFuture)
+                                                {
+                                                    <span class="badge bg-warning text-dark ms-1" style="font-size: 0.6rem;">PLAN</span>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td class="text-end pe-3">
+                                            <span class="@(t.Type == projekt_zespolowy.Models.TransactionType.Income ? "text-success" : "text-danger") fw-bold">
+                                                @(t.Type == projekt_zespolowy.Models.TransactionType.Income ? "+" : "-")@t.Amount.ToString("N2")
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="2" class="p-4 text-center text-muted">
+                                        <i class="fas fa-receipt fa-2x mb-2 d-block opacity-25"></i>
+                                        Brak ostatnich transakcji.
                                     </td>
                                 </tr>
                             }
-                        }
-                        else
-                        {
-                            <tr><td class="p-3 text-muted">Brak transakcji.</td></tr>
-                        }
-                    </tbody>
-                </table>
-                <div class="card-footer bg-white text-center">
-                    <a asp-controller="Transactions" asp-action="Create" class="btn btn-sm btn-outline-success">+ Nowa Transakcja</a>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer bg-white text-center border-top-0">
+                    <a asp-controller="Transactions" asp-action="Create" class="btn btn-sm btn-outline-success w-100">
+                        <i class="fas fa-plus me-1"></i> Nowa Transakcja
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const rawData = @Html.Raw(ViewData["ChartData"] ?? "[]");
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
 
-        if (rawData.length > 0) {
-            const ctx = document.getElementById('dashboardChart').getContext('2d');
+            const rawData = @Html.Raw(ViewData["ChartData"] ?? "[]");
+            if (rawData.length > 0) {
+                const ctx = document.getElementById('dashboardChart').getContext('2d');
+                const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: rawData.map(x => x.Date),
+                        datasets: [
+                            { label: 'Przychody', data: rawData.map(x => x.Income), backgroundColor: '#1cc88a' },
+                            { label: 'Wydatki', data: rawData.map(x => x.Expense), backgroundColor: '#e74a3b' }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
 
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: rawData.map(x => x.Date),
-                    datasets: [
-                        {
-                            label: 'Przychody',
-                            data: rawData.map(x => x.Income),
-                            backgroundColor: 'rgba(40, 167, 69, 0.7)',
-                            borderColor: '#28a745',
-                            borderWidth: 1,
-                            borderRadius: 4
-                        },
-                        {
-                            label: 'Wydatki',
-                            data: rawData.map(x => x.Expense),
-                            backgroundColor: 'rgba(220, 53, 69, 0.7)',
-                            borderColor: '#dc3545',
-                            borderWidth: 1,
-                            borderRadius: 4
-                        }
-                    ]
+            var miniCalendarEl = document.getElementById('miniCalendar');
+            var miniCalendar = new FullCalendar.Calendar(miniCalendarEl, {
+                initialView: 'listMonth',
+                locale: 'pl',
+                height: 350,
+                headerToolbar: {
+                    left: '',
+                    center: 'title',
+                    right: ''
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function (value) { return value + ' zł'; }
-                            }
-                        },
-                        x: {
-                            grid: { display: false }
-                        }
-                    },
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function (context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) { label += ': '; }
-                                    if (context.parsed.y !== null) {
-                                        label += new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(context.parsed.y);
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    }
+                events: '/Calendar/GetEvents',
+                eventClick: function (info) {
+                    window.location.href = '/Calendar/Index';
+                },
+                noEventsText: 'Brak płatności',
+
+                eventContent: function (arg) {
+                    let isPaid = arg.event.extendedProps.isPaid;
+                    let amount = arg.event.extendedProps.amount;
+
+                    let statusIcon = isPaid
+                        ? '<span class="badge bg-success me-2"><i class="fas fa-check"></i></span>'
+                        : '<span class="badge bg-warning text-dark me-2"><i class="fas fa-clock"></i></span>';
+
+                    let htmlContent = `
+                                <div class="fc-list-event-title d-flex align-items-center justify-content-between w-100">
+                                    <div>
+                                        ${statusIcon}
+                                        <span>${arg.event.title}</span>
+                                    </div>
+                                </div>
+                            `;
+
+                    return { html: htmlContent };
                 }
             });
-        }
-    });
-</script>
+            miniCalendar.render();
+        });
+    </script>
+}
