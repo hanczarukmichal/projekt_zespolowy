@@ -1,161 +1,261 @@
-﻿@model projekt_zespolowy.ViewModels.FinancialReportViewModel
-@using projekt_zespolowy.Models
+﻿@model projekt_zespolowy.ViewModels.ReportViewModel
 
 @{
-    ViewData["Title"] = "Raporty Finansowe";
-    var labelsJson = Newtonsoft.Json.JsonConvert.SerializeObject(Model.Data.Select(x => x.CategoryName));
-    var dataJson = Newtonsoft.Json.JsonConvert.SerializeObject(Model.Data.Select(x => x.TotalAmount));
+    ViewData["Title"] = "Raport Finansowy";
+    string GetTrendClass(double percent, bool isExpense)
+    {
+        if (percent == 0) return "text-muted";
+        if (isExpense) return percent > 0 ? "text-danger" : "text-success";
+        return percent > 0 ? "text-success" : "text-danger";
+    }
+    string GetArrow(double percent) => percent > 0 ? "fa-arrow-up" : (percent < 0 ? "fa-arrow-down" : "fa-minus");
 }
 
 <div class="container-fluid py-4">
-    <h2 class="mb-4 text-center">📊 Raport Finansowy</h2>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+        <div class="mb-3 mb-md-0">
+            <h2 class="fw-bold mb-0">Raport Miesięczny</h2>
+            <p class="text-muted">@Model.CurrentMonth.ToString("MMMM yyyy")</p>
+        </div>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-body bg-light">
-            <form asp-action="Index" method="get" class="row g-3 align-items-end">
-                <div class="col-md-3">
-                    <label asp-for="StartDate" class="form-label fw-bold text-muted small">OD DATY</label>
-                    <input asp-for="StartDate" class="form-control" type="date" />
-                </div>
-                <div class="col-md-3">
-                    <label asp-for="EndDate" class="form-label fw-bold text-muted small">DO DATY</label>
-                    <input asp-for="EndDate" class="form-control" type="date" />
-                </div>
-                <div class="col-md-3">
-                    <label asp-for="ReportType" class="form-label fw-bold text-muted small">TYP RAPORTU</label>
-                    <select asp-for="ReportType" asp-items="Html.GetEnumSelectList<TransactionType>()" class="form-select"></select>
-                </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary w-100 fw-bold">
-                        <i class="fas fa-filter me-2"></i> Generuj Raport
-                    </button>
-                </div>
+        <div class="d-flex gap-2">
+            <a asp-action="CustomReport" class="btn btn-outline-secondary">
+                <i class="fas fa-calendar-alt me-2"></i>Wybierz Okres
+            </a>
+
+            <form method="get" class="d-flex gap-2">
+                <select name="month" class="form-select w-auto" onchange="this.form.submit()">
+                    @for (int i = 1; i <= 12; i++)
+                    {
+                        <option value="@i" selected="@(i == Model.CurrentMonth.Month)">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                    }
+                </select>
+                <select name="year" class="form-select w-auto" onchange="this.form.submit()">
+                    @for (int i = DateTime.Now.Year; i >= DateTime.Now.Year - 2; i--)
+                    {
+                        <option value="@i" selected="@(i == Model.CurrentMonth.Year)">@i</option>
+                    }
+                </select>
             </form>
         </div>
     </div>
 
-    @if (Model.Data.Any())
-    {
-        <div class="row">
-            <div class="col-lg-5 mb-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header bg-white fw-bold">Szczegóły operacji</div>
-                    <div class="card-body p-0">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Kategoria</th>
-                                    <th class="text-end">Kwota</th>
-                                    <th class="text-end text-muted small">%</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @{
-                                    var total = Model.Data.Sum(x => x.TotalAmount);
-                                }
-                                @foreach (var item in Model.Data)
-                                {
-                                    var percent = total > 0 ? (item.TotalAmount / total) * 100 : 0;
-                                    <tr>
-                                        <td>@item.CategoryName</td>
-                                        <td class="text-end fw-bold">@item.TotalAmount.ToString("C")</td>
-                                        <td class="text-end text-muted small">@percent.ToString("F1")%</td>
-                                    </tr>
-                                }
-                            </tbody>
-                            <tfoot>
-                                <tr class="bg-light fw-bold">
-                                    <td>SUMA CAŁKOWITA</td>
-                                    <td class="text-end text-primary">@total.ToString("C")</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-start border-4 border-success">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase mb-2">Przychody</h6>
+                    <h3 class="fw-bold text-success mb-3">@Model.TotalIncome.ToString("C")</h3>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="@GetTrendClass(Model.IncomeChangePercent, false) fw-bold small">
+                            <i class="fas @GetArrow(Model.IncomeChangePercent) me-1"></i>
+                            @Math.Abs(Model.IncomeChangePercent).ToString("0.0")%
+                        </span>
+                        <span class="text-muted small">vs poprz. mies. (@Model.PrevTotalIncome.ToString("N0"))</span>
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-start border-4 border-danger">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase mb-2">Wydatki</h6>
+                    <h3 class="fw-bold text-danger mb-3">@Model.TotalExpense.ToString("C")</h3>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="@GetTrendClass(Model.ExpenseChangePercent, true) fw-bold small">
+                            <i class="fas @GetArrow(Model.ExpenseChangePercent) me-1"></i>
+                            @Math.Abs(Model.ExpenseChangePercent).ToString("0.0")%
+                        </span>
+                        <span class="text-muted small">vs poprz. mies. (@Model.PrevTotalExpense.ToString("N0"))</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-start border-4 border-primary">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase mb-2">Bilans Netto</h6>
+                    <h3 class="fw-bold @(Model.Balance >= 0 ? "text-primary" : "text-danger") mb-3">
+                        @Model.Balance.ToString("C")
+                    </h3>
+                    <div class="text-muted small">Pozostało w kieszeni</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            <div class="col-lg-7 mb-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <span class="fw-bold">Wizualizacja graficzna</span>
-                        <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn btn-outline-secondary active" id="btnPie" onclick="setChartType('doughnut')">Kołowy</button>
-                            <button type="button" class="btn btn-outline-secondary" id="btnBar" onclick="setChartType('bar')">Słupkowy</button>
-                        </div>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white p-0">
+                    <ul class="nav nav-tabs card-header-tabs m-0" id="trendTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active fw-bold py-3 px-4 border-top-0 border-start-0" id="expense-tab" data-bs-toggle="tab" data-bs-target="#expenseTrend" type="button">
+                                <i class="fas fa-chart-line text-danger me-2"></i>Trend Wydatków
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-bold py-3 px-4 border-top-0" id="income-tab" data-bs-toggle="tab" data-bs-target="#incomeTrend" type="button">
+                                <i class="fas fa-chart-line text-success me-2"></i>Trend Przychodów
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body tab-content">
+                    <div class="tab-pane fade show active" id="expenseTrend" style="height: 400px; width: 100%;">
+                        <canvas id="expenseTrendChart"></canvas>
                     </div>
-                    <div class="card-body">
-                        <div style="position: relative; height: 400px; width: 100%;">
-                            <canvas id="myChart"></canvas>
-                        </div>
+                    <div class="tab-pane fade" id="incomeTrend" style="height: 400px; width: 100%;">
+                        <canvas id="incomeTrendChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
-    }
-    else
-    {
-        <div class="alert alert-info text-center py-5">
-            <h4>Brak danych do wyświetlenia</h4>
-            <p>Zmień filtry lub dodaj nowe transakcje.</p>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white p-0">
+                    <ul class="nav nav-tabs card-header-tabs m-0" id="pieTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active fw-bold py-3 px-3 border-top-0 border-start-0" id="exp-pie-tab" data-bs-toggle="tab" data-bs-target="#expPie" type="button">
+                                Wydatki
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-bold py-3 px-3 border-top-0" id="inc-pie-tab" data-bs-toggle="tab" data-bs-target="#incPie" type="button">
+                                Przychody
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body tab-content d-flex justify-content-center align-items-center">
+                    <div class="tab-pane fade show active w-100 position-relative" id="expPie" style="height: 300px;">
+                        @if (Model.ExpenseCategoryValues.Sum() > 0)
+                        {
+                            <canvas id="expensePieChart"></canvas>
+                        }
+                        else
+                        {
+                            <div class="text-center text-muted py-5">Brak danych</div>
+                        }
+                    </div>
+                    <div class="tab-pane fade w-100 position-relative" id="incPie" style="height: 300px;">
+                        @if (Model.IncomeCategoryValues.Sum() > 0)
+                        {
+                            <canvas id="incomePieChart"></canvas>
+                        }
+                        else
+                        {
+                            <div class="text-center text-muted py-5">Brak danych</div>
+                        }
+                    </div>
+                </div>
+            </div>
         </div>
-    }
+    </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    const ctx = document.getElementById('myChart');
-    let myChart = null;
-    const labels = @Html.Raw(labelsJson);
-    const data = @Html.Raw(dataJson);
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    const backgroundColors = [
-        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
-        '#858796', '#5a5c69', '#fd7e14', '#20c997', '#6f42c1'
-    ];
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            const textColor = isDark ? '#e0e0e0' : '#666';
+            const gridColor = isDark ? '#444' : '#eee';
 
-    function createChart(type) {
-        if (myChart) myChart.destroy();
-
-        const config = {
-            type: type,
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Kwota (PLN)',
-                    data: data,
-                    backgroundColor: type === 'bar' ? '#4e73df' : backgroundColors,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        display: type !== 'bar' 
+            function createLineChart(ctxId, labelCurrent, dataCurrent, labelPrev, dataPrev, color) {
+                const ctx = document.getElementById(ctxId).getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DaysLabels)),
+                        datasets: [
+                            {
+                                label: labelCurrent,
+                                data: dataCurrent,
+                                borderColor: color,
+                                backgroundColor: color + '10',
+                                borderWidth: 3,
+                                pointRadius: 2,
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: labelPrev,
+                                data: dataPrev,
+                                borderColor: '#858796',
+                                borderDash: [5, 5],
+                                borderWidth: 2,
+                                pointRadius: 0,
+                                tension: 0.3,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: { legend: { labels: { color: textColor } } },
+                        scales: {
+                            x: { grid: { color: gridColor }, ticks: { color: textColor } },
+                            y: { grid: { color: gridColor }, ticks: { color: textColor } }
+                        }
                     }
-                },
-                scales: type === 'bar' ? {
-                    y: { beginAtZero: true }
-                } : {}
+                });
             }
-        };
 
-        myChart = new Chart(ctx, config);
-    }
+            function createPieChart(ctxId, labels, data) {
+                const ctx = document.getElementById(ctxId);
+                if (!ctx) return;
 
-    function setChartType(type) {
-        
-        document.getElementById('btnPie').classList.toggle('active', type === 'doughnut');
-        document.getElementById('btnBar').classList.toggle('active', type === 'bar');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: [
+                                '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
+                                '#858796', '#5a5c69', '#fd7e14', '#20c9a6', '#6610f2'
+                            ],
+                            borderWidth: isDark ? 0 : 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'right', labels: { color: textColor, usePointStyle: true } }
+                        }
+                    }
+                });
+            }
 
-        createChart(type);
-    }
+            createLineChart('expenseTrendChart', 'Ten miesiąc (Wydatki)',
+        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CumulativeExpenseCurrent)),
+                'Poprzedni miesiąc',
+        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CumulativeExpensePrev)),
+                '#e74a3b'
+            );
 
-    // Start
-    if (labels.length > 0) {
-        createChart('doughnut');
-    }
-</script>
+            createLineChart('incomeTrendChart', 'Ten miesiąc (Przychody)',
+        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CumulativeIncomeCurrent)),
+                'Poprzedni miesiąc',
+        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CumulativeIncomePrev)),
+                '#1cc88a'
+            );
+
+            createPieChart('expensePieChart',
+        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ExpenseCategoryLabels)),
+        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ExpenseCategoryValues))
+                    );
+
+            createPieChart('incomePieChart',
+        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.IncomeCategoryLabels)),
+        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.IncomeCategoryValues))
+                    );
+        });
+    </script>
+}

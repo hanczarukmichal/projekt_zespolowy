@@ -1,0 +1,105 @@
+﻿@model projekt_zespolowy.ViewModels.CustomReportViewModel
+
+@{
+    ViewData["Title"] = "Raport Niestandardowy";
+}
+
+<div class="container py-4">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-white">
+            <h4 class="m-0 fw-bold text-primary"><i class="fas fa-filter me-2"></i>Wybierz Okres Raportu</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="CustomReport" method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Data Od</label>
+                    <input type="date" name="startDate" value="@Model.StartDate.ToString("yyyy-MM-dd")" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Data Do</label>
+                    <input type="date" name="endDate" value="@Model.EndDate.ToString("yyyy-MM-dd")" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Generuj Raport
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row text-center mb-4">
+        <div class="col-md-4">
+            <div class="card border-left-success shadow h-100 py-2 border-start border-4 border-success">
+                <div class="card-body">
+                    <div class="text-xs fw-bold text-success text-uppercase mb-1">Suma Przychodów</div>
+                    <div class="h3 mb-0 fw-bold text-gray-800">@Model.TotalIncome.ToString("C")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-left-danger shadow h-100 py-2 border-start border-4 border-danger">
+                <div class="card-body">
+                    <div class="text-xs fw-bold text-danger text-uppercase mb-1">Suma Wydatków</div>
+                    <div class="h3 mb-0 fw-bold text-gray-800">@Model.TotalExpense.ToString("C")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-left-primary shadow h-100 py-2 border-start border-4 border-primary">
+                <div class="card-body">
+                    <div class="text-xs fw-bold text-primary text-uppercase mb-1">Bilans Okresu</div>
+                    <div class="h3 mb-0 fw-bold @(Model.Balance >= 0 ? "text-primary" : "text-danger")">
+                        @Model.Balance.ToString("C")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Transactions != null && Model.Transactions.Any())
+    {
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-white">
+                <h6 class="m-0 fw-bold text-primary">Historia Transakcji w tym okresie</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Kategoria</th>
+                                <th>Opis</th>
+                                <th class="text-end">Kwota</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Transactions)
+                            {
+                                <tr>
+                                    <td>@item.Date.ToShortDateString()</td>
+                                    <td>@(item.Category?.Name ?? "-")</td>
+                                    <td>@item.Description</td>
+                                    <td class="text-end fw-bold @(item.Type == projekt_zespolowy.Models.TransactionType.Income ? "text-success" : "text-danger")">
+                                        @(item.Type == projekt_zespolowy.Models.TransactionType.Income ? "+" : "-")@item.Amount.ToString("N2")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center">Brak transakcji w wybranym okresie.</div>
+    }
+
+    <div class="text-center mt-3">
+        <a asp-action="Index" class="btn btn-secondary">Powrót do Dashboardu</a>
+    </div>
+</div>
