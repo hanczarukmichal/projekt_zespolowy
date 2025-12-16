@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using projekt_zespolowy.Data;
 using projekt_zespolowy.Models;
+using projekt_zespolowy.ViewModels; // Pamiętaj o dodaniu tego namespace'u
 
 namespace projekt_zespolowy.Controllers
 {
@@ -29,12 +30,38 @@ namespace projekt_zespolowy.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            var budgets = _context.Budgets
+            // 1. Pobierz budżety użytkownika
+            var budgets = await _context.Budgets
                 .Include(b => b.Category)
                 .Where(b => b.ApplicationUserId == user.Id)
-                .OrderByDescending(b => b.Month);
+                .OrderByDescending(b => b.Month)
+                .ToListAsync();
 
-            return View(await budgets.ToListAsync());
+            // 2. Pobierz transakcje (Wydatki) użytkownika
+            var transactions = await _context.Transactions
+                .Where(t => t.ApplicationUserId == user.Id && t.Type == TransactionType.Expense)
+                .ToListAsync();
+
+            // 3. Połącz dane w ViewModel
+            var budgetStatuses = new List<BudgetStatusViewModel>();
+
+            foreach (var budget in budgets)
+            {
+                // Sumujemy transakcje, które pasują do kategorii i miesiąca budżetu
+                var spent = transactions
+                    .Where(t => t.CategoryId == budget.CategoryId
+                             && t.Date.Year == budget.Month.Year
+                             && t.Date.Month == budget.Month.Month)
+                    .Sum(t => t.Amount);
+
+                budgetStatuses.Add(new BudgetStatusViewModel
+                {
+                    Budget = budget,
+                    SpentAmount = spent
+                });
+            }
+
+            return View(budgetStatuses);
         }
 
         // GET: Budgets/Create
@@ -46,7 +73,6 @@ namespace projekt_zespolowy.Controllers
         // POST: Budgets/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // ZMIANA: Dodano '?' przy string, aby parametry były opcjonalne
         public async Task<IActionResult> Create(Budget budget, string? CategorySelection, string? CustomCategoryName)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -55,7 +81,6 @@ namespace projekt_zespolowy.Controllers
             budget.ApplicationUserId = user.Id;
             string finalCategoryName = "";
 
-            // 1. Logika wyboru kategorii
             if (CategorySelection == "Custom")
             {
                 if (string.IsNullOrWhiteSpace(CustomCategoryName))
@@ -68,8 +93,7 @@ namespace projekt_zespolowy.Controllers
             }
             else
             {
-                // Jeśli wybrano kategorię predefiniowaną (np. Jedzenie), ignorujemy brak CustomCategoryName
-                ModelState.Remove("CustomCategoryName"); // <--- KLUCZOWA POPRAWKA
+                ModelState.Remove("CustomCategoryName");
 
                 if (string.IsNullOrEmpty(CategorySelection)) CategorySelection = "Jedzenie";
                 finalCategoryName = CategorySelection;
@@ -77,7 +101,6 @@ namespace projekt_zespolowy.Controllers
                 budget.Priority = BudgetPriority.Wysoki;
             }
 
-            // 2. Szukamy lub tworzymy kategorię
             var existingCategory = await _context.Categories
                 .FirstOrDefaultAsync(c => c.Name == finalCategoryName && c.ApplicationUserId == user.Id);
 
@@ -93,7 +116,6 @@ namespace projekt_zespolowy.Controllers
                 budget.CategoryId = existingCategory.Id;
             }
 
-            // 3. Czyszczenie walidacji pól systemowych
             ModelState.Remove("Category");
             ModelState.Remove("CategoryId");
             ModelState.Remove("ApplicationUser");

@@ -9,8 +9,23 @@
         <h4 class="mb-0">Dodaj nową transakcję</h4>
     </div>
     <div class="card-body">
+
+        @* BLOK OSTRZEŻENIA O PRZEKROCZENIU BUDŻETU *@
+        @if (ViewBag.BudgetExceeded == true)
+        {
+            <div class="alert alert-warning border-warning shadow-sm" role="alert">
+                <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Przekroczenie budżetu!</h4>
+                <p>@ViewBag.ExceededMessage</p>
+                <hr>
+                <p class="mb-0">Kliknij przycisk <strong>Zapisz mimo to</strong> poniżej, aby zatwierdzić to przekroczenie.</p>
+            </div>
+        }
+
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            @* UKRYTE POLE - przechowuje informację, czy użytkownik widzi już ostrzeżenie *@
+            <input type="hidden" name="confirmExceeded" value="@(ViewBag.BudgetExceeded == true ? "true" : "false")" />
 
             <div class="row">
                 <div class="col-md-6 mb-3">
@@ -29,7 +44,7 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label asp-for="Date" class="form-label fw-bold">Data</label>
-                    <input asp-for="Date" class="form-control" />
+                    <input asp-for="Date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
                     <span asp-validation-for="Date" class="text-danger"></span>
                 </div>
 
@@ -50,7 +65,15 @@
 
             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                 <a asp-action="Index" class="btn btn-secondary me-md-2">Anuluj</a>
-                <input type="submit" value="Zapisz transakcję" class="btn btn-success px-4" />
+
+                @if (ViewBag.BudgetExceeded == true)
+                {
+                    <input type="submit" value="Zapisz mimo to" class="btn btn-warning px-4" />
+                }
+                else
+                {
+                    <input type="submit" value="Zapisz transakcję" class="btn btn-success px-4" />
+                }
             </div>
         </form>
     </div>

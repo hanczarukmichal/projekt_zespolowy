@@ -1,4 +1,4 @@
-﻿@model IEnumerable<projekt_zespolowy.Models.Budget>
+﻿@model IEnumerable<projekt_zespolowy.ViewModels.BudgetStatusViewModel>
 
 @{
     ViewData["Title"] = "Budżety";
@@ -12,12 +12,13 @@
 
     <div class="card shadow-sm">
         <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>Kategoria</th>
-                        <th>Limit</th>
                         <th>Miesiąc</th>
+                        <th>Kategoria</th>
+                        <th style="width: 35%;">Wykorzystanie budżetu</th>
+                        <th>Status</th>
                         <th>Priorytet</th>
                         <th class="text-center">Akcje</th>
                     </tr>
@@ -25,22 +26,67 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        <tr>
+                        // Ustalanie klas CSS w zależności od przekroczenia budżetu
+                        var isOver = item.IsOverBudget;
+                        var progressClass = isOver ? "bg-danger" : (item.Percentage > 85 ? "bg-warning" : "bg-success");
+                        // Formatowanie procentów dla CSS (max 100% szerokości paska)
+                        var widthPercent = Math.Min(item.Percentage, 100).ToString("0", System.Globalization.CultureInfo.InvariantCulture) + "%";
+
+                        <tr class="@(isOver ? "table-danger" : "")">
+                            <td>
+                                <strong>@item.Budget.Month.ToString("MM.yyyy")</strong>
+                            </td>
                             <td class="fw-bold">
-                                @Html.DisplayFor(modelItem => item.Category.Name)
+                                @Html.DisplayFor(modelItem => item.Budget.Category.Name)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.Amount) PLN
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>Wydano: <strong>@item.SpentAmount.ToString("C")</strong></span>
+                                    <span>Limit: @item.Budget.Amount.ToString("C")</span>
+                                </div>
+                                <div class="progress" style="height: 12px; background-color: #e9ecef;">
+                                    <div class="progress-bar @progressClass" role="progressbar"
+                                         style="width: @widthPercent"
+                                         aria-valuenow="@item.Percentage" aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <small class="text-muted">
+                                    @if (isOver)
+                                    {
+                                        <span class="text-danger fw-bold">Przekroczono o @Math.Abs(item.RemainingAmount).ToString("C")</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Pozostało: @item.RemainingAmount.ToString("C") (@(100 - (int)item.Percentage)%)</span>
+                                    }
+                                </small>
                             </td>
                             <td>
-                                @item.Month.ToString("MM.yyyy")
+                                @if (isOver)
+                                {
+                                    <span class="badge bg-danger">Przekroczony</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">W normie</span>
+                                }
                             </td>
                             <td>
-                                <span class="badge bg-secondary">@item.Priority</span>
+                                @{
+                                    var priorityBadge = item.Budget.Priority switch
+                                    {
+                                        projekt_zespolowy.Models.BudgetPriority.Wysoki => "bg-danger",
+                                        projekt_zespolowy.Models.BudgetPriority.Sredni => "bg-warning text-dark",
+                                        _ => "bg-info text-dark"
+                                    };
+                                }
+                                <span class="badge @priorityBadge">@item.Budget.Priority</span>
                             </td>
                             <td class="text-center">
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edytuj</a>
-                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Usuń</a>
+                                <div class="btn-group">
+                                    <a asp-action="Edit" asp-route-id="@item.Budget.Id" class="btn btn-sm btn-outline-primary">Edytuj</a>
+                                    <a asp-action="Delete" asp-route-id="@item.Budget.Id" class="btn btn-sm btn-outline-danger">Usuń</a>
+                                </div>
                             </td>
                         </tr>
                     }

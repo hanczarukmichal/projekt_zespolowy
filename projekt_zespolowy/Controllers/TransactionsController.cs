@@ -79,7 +79,7 @@ namespace projekt_zespolowy.Controllers
         public IActionResult Create()
         {
             var userId = GetCurrentUserId();
-           
+
             ViewData["CategoryId"] = new SelectList(_context.Categories.Where(c => c.ApplicationUserId == userId), "Id", "Name");
             return View();
         }
@@ -87,13 +87,13 @@ namespace projekt_zespolowy.Controllers
         // POST: Transactions/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Description,Amount,Date,Type,CategoryId")] Transaction transaction)
+        // Dodajemy parametr confirmExceeded, domyślnie false
+        public async Task<IActionResult> Create([Bind("Id,Description,Amount,Date,Type,CategoryId")] Transaction transaction, bool confirmExceeded = false)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
             transaction.ApplicationUserId = user.Id;
-
 
             ModelState.Remove("ApplicationUser");
             ModelState.Remove("ApplicationUserId");
@@ -101,6 +101,44 @@ namespace projekt_zespolowy.Controllers
 
             if (ModelState.IsValid)
             {
+                // SPRAWDZANIE BUDŻETU
+                // Sprawdzamy tylko jeśli to wydatek, kategoria jest wybrana i użytkownik jeszcze nie potwierdził przekroczenia
+                if (transaction.Type == TransactionType.Expense && transaction.CategoryId != null && !confirmExceeded)
+                {
+                    var budget = await _context.Budgets
+                        .Include(b => b.Category)
+                        .FirstOrDefaultAsync(b => b.CategoryId == transaction.CategoryId
+                                               && b.Month.Month == transaction.Date.Month
+                                               && b.Month.Year == transaction.Date.Year
+                                               && b.ApplicationUserId == user.Id);
+
+                    if (budget != null)
+                    {
+                        // Policz ile już wydano w tej kategorii w tym miesiącu
+                        var currentSpent = await _context.Transactions
+                            .Where(t => t.CategoryId == transaction.CategoryId
+                                     && t.Date.Month == transaction.Date.Month
+                                     && t.Date.Year == transaction.Date.Year
+                                     && t.Type == TransactionType.Expense
+                                     && t.ApplicationUserId == user.Id)
+                            .SumAsync(t => t.Amount);
+
+                        // Jeśli nowa kwota spowoduje przekroczenie
+                        if (currentSpent + transaction.Amount > budget.Amount)
+                        {
+                            decimal overAmount = (currentSpent + transaction.Amount) - budget.Amount;
+
+                            ViewBag.BudgetExceeded = true;
+                            ViewBag.ExceededMessage = $"Uwaga! Ta transakcja przekroczy budżet w kategorii '{budget.Category?.Name}' o {overAmount:C}. Limit wynosi {budget.Amount:C}, a wydano już {currentSpent:C}. Czy na pewno chcesz kontynuować?";
+
+                            // Przeładuj listę kategorii, bo wracamy do widoku
+                            ViewData["CategoryId"] = new SelectList(_context.Categories.Where(c => c.ApplicationUserId == user.Id), "Id", "Name", transaction.CategoryId);
+                            return View(transaction);
+                        }
+                    }
+                }
+
+                // Zapisz jeśli nie ma przekroczenia LUB użytkownik potwierdził (confirmExceeded == true)
                 _context.Add(transaction);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -109,6 +147,5 @@ namespace projekt_zespolowy.Controllers
             ViewData["CategoryId"] = new SelectList(_context.Categories.Where(c => c.ApplicationUserId == user.Id), "Id", "Name", transaction.CategoryId);
             return View(transaction);
         }
-
     }
 }
