@@ -36,13 +36,10 @@ namespace projekt_zespolowy.Controllers
 
             foreach (var item in events)
             {
-                // Kolory: Zielony jeśli zapłacone, Żółty/Czerwony jeśli nie
                 string eventColor = item.IsPaid ? "#1cc88a" : "#f6c23e";
 
-                // Jeśli niezapłacone i po terminie -> Czerwony
                 if (!item.IsPaid && item.Date < DateTime.Now) eventColor = "#e74a3b";
 
-                // Obsługa cykliczności (uproszczona wizualizacja)
                 if (item.Frequency == PaymentFrequency.OneTime)
                 {
                     if (item.Date >= start && item.Date <= end)
@@ -50,15 +47,12 @@ namespace projekt_zespolowy.Controllers
                 }
                 else
                 {
-                    // Dla uproszczenia w edycji: cykliczne edytujemy jako "wzorzec".
-                    // Tutaj generujemy tylko widok.
                     var currentDate = item.Date;
                     while (currentDate < start)
                         currentDate = item.Frequency == PaymentFrequency.Monthly ? currentDate.AddMonths(1) : currentDate.AddYears(1);
 
                     while (currentDate <= end)
                     {
-                        // Cykliczne wyświetlamy, ale edycja dotyczy "głównego" rekordu
                         calendarEvents.Add(CreateEventObject(item, currentDate, eventColor));
                         currentDate = item.Frequency == PaymentFrequency.Monthly ? currentDate.AddMonths(1) : currentDate.AddYears(1);
                     }
@@ -142,6 +136,60 @@ namespace projekt_zespolowy.Controllers
                 return Ok();
             }
             return NotFound();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ConfirmPayment(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var payment = await _context.PaymentEvents
+                .FirstOrDefaultAsync(p => p.Id == id && p.ApplicationUserId == user.Id);
+
+            if (payment == null) return NotFound();
+
+            var category = await _context.Categories
+                .FirstOrDefaultAsync(c => c.Name == "Rachunki" && c.ApplicationUserId == user.Id);
+
+            int? catId = category?.Id ?? (await _context.Categories.FirstOrDefaultAsync(c => c.ApplicationUserId == user.Id))?.Id;
+
+            var transaction = new Transaction
+            {
+                ApplicationUserId = user.Id,
+                Amount = payment.Amount,
+                Date = DateTime.Now,
+                Type = TransactionType.Expense,
+                Description = $"Opłacono: {payment.Title}",
+                CategoryId = catId
+            };
+
+            _context.Transactions.Add(transaction);
+
+            if (payment.Frequency == PaymentFrequency.OneTime)
+            {
+                payment.IsPaid = true;
+            }
+            else
+            {
+                if (payment.Frequency == PaymentFrequency.Monthly)
+                {
+                    payment.Date = payment.Date.AddMonths(1);
+                }
+                else if (payment.Frequency == PaymentFrequency.Yearly)
+                {
+                    payment.Date = payment.Date.AddYears(1);
+                }
+
+                while (payment.Date < DateTime.Now)
+                {
+                    if (payment.Frequency == PaymentFrequency.Monthly) payment.Date = payment.Date.AddMonths(1);
+                    else payment.Date = payment.Date.AddYears(1);
+                }
+
+                payment.IsPaid = false;
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok();
         }
     }
 }

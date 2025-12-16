@@ -50,7 +50,6 @@ namespace projekt_zespolowy.Controllers
 
                 var today = DateTime.Today;
                 var monthAgo = today.AddDays(-30);
-
                 var chartData = new List<object>();
 
                 for (var date = monthAgo; date <= today; date = date.AddDays(1))
@@ -65,10 +64,18 @@ namespace projekt_zespolowy.Controllers
                     });
                 }
 
+                var upcomingPayments = await _context.PaymentEvents
+                    .Where(p => p.ApplicationUserId == userId && !p.IsPaid)
+                    .Where(p => p.Date <= DateTime.Now.AddDays(7))
+                    .OrderBy(p => p.Date)
+                    .ToListAsync();
+
                 ViewData["ChartData"] = System.Text.Json.JsonSerializer.Serialize(chartData);
                 ViewData["MainBalance"] = balance;
                 ViewData["RecentTransactions"] = recentTransactions;
                 ViewData["Budgets"] = budgets;
+
+                ViewBag.UpcomingPayments = upcomingPayments;
 
                 return View("Dashboard");
             }
@@ -82,6 +89,5 @@ namespace projekt_zespolowy.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
-
     }
 }

@@ -1,9 +1,12 @@
 ﻿@model IEnumerable<projekt_zespolowy.Models.Budget>
+@using projekt_zespolowy.Models
+
 @{
     ViewData["Title"] = "Pulpit";
     var balance = (decimal)ViewData["MainBalance"];
-    var transactions = ViewData["RecentTransactions"] as List<projekt_zespolowy.Models.Transaction>;
-    var budgets = ViewData["Budgets"] as List<projekt_zespolowy.Models.Budget>;
+    var transactions = ViewData["RecentTransactions"] as List<Transaction>;
+    var budgets = ViewData["Budgets"] as List<Budget>;
+    var upcomingPayments = ViewBag.UpcomingPayments as List<PaymentEvent>;
 }
 
 <div class="container-fluid py-4">
@@ -13,6 +16,37 @@
             @DateTime.Now.ToString("dd MMMM yyyy, dddd")
         </div>
     </div>
+
+    @if (upcomingPayments != null && upcomingPayments.Any())
+    {
+        <div class="alert alert-warning payment-alert shadow-sm border-start border-warning border-4 mb-4" role="alert">
+            <h5 class="alert-heading d-flex align-items-center fw-bold">
+                <i class="fas fa-exclamation-triangle me-2"></i> Nadchodzące płatności
+            </h5>
+            <hr>
+            <div class="list-group list-group-flush bg-transparent">
+                @foreach (var payment in upcomingPayments)
+                {
+                    var daysLeft = (payment.Date.Date - DateTime.Today).Days;
+                    string badgeClass = daysLeft < 0 ? "bg-danger" : (daysLeft == 0 ? "bg-danger" : "bg-warning text-dark");
+                    string daysText = daysLeft < 0 ? $"{Math.Abs(daysLeft)} dni po terminie!" : (daysLeft == 0 ? "DZISIAJ" : $"za {daysLeft} dni");
+
+                    <div class="payment-item d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                        <div>
+                            <strong>@payment.Title</strong>
+                            <span class="badge @badgeClass ms-2">@daysText</span>
+                            <div class="small opacity-75">
+                                @payment.Date.ToShortDateString() &bull; <strong>@payment.Amount.ToString("C")</strong>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-success confirm-payment-btn shadow-sm" data-id="@payment.Id">
+                            <i class="fas fa-check me-1"></i> Zapłać
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    }
 
     <div class="row">
         <div class="col-lg-8 mb-4">
@@ -63,8 +97,6 @@
                     {
                         foreach (var b in budgets)
                         {
-                            // Obliczanie zużycia budżetu (przykład logiczny)
-                            // W przyszłości możesz tu dodać logikę pobierania faktycznych wydatków
                             <div class="list-group-item bg-transparent">
                                 <div class="d-flex w-100 justify-content-between align-items-center mb-1">
                                     <h6 class="mb-0 fw-bold">@b.Category.Name</h6>
@@ -109,7 +141,7 @@
                                     <tr class="@(isFuture ? "table-warning" : "")">
                                         <td class="ps-3">
                                             <div class="fw-bold text-truncate" style="max-width: 150px;">
-                                                @if (t.Type == projekt_zespolowy.Models.TransactionType.Income)
+                                                @if (t.Type == TransactionType.Income)
                                                 {
                                                     <i class="fas fa-arrow-up text-success me-1 small"></i>
                                                 }
@@ -128,8 +160,8 @@
                                             </div>
                                         </td>
                                         <td class="text-end pe-3">
-                                            <span class="@(t.Type == projekt_zespolowy.Models.TransactionType.Income ? "text-success" : "text-danger") fw-bold">
-                                                @(t.Type == projekt_zespolowy.Models.TransactionType.Income ? "+" : "-")@t.Amount.ToString("N2")
+                                            <span class="@(t.Type == TransactionType.Income ? "text-success" : "text-danger") fw-bold">
+                                                @(t.Type == TransactionType.Income ? "+" : "-")@t.Amount.ToString("N2")
                                             </span>
                                         </td>
                                     </tr>
@@ -218,6 +250,29 @@
                 }
             });
             miniCalendar.render();
+
+            document.querySelectorAll('.confirm-payment-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    if (!confirm("Czy na pewno chcesz potwierdzić opłacenie tej subskrypcji? Zostanie dodany wydatek, a termin przesunie się na kolejny okres.")) return;
+
+                    var id = this.getAttribute('data-id');
+                    var btn = this;
+
+                    fetch('/Calendar/ConfirmPayment?id=' + id, {
+                        method: 'POST',
+                        headers: {
+                        }
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                location.reload();
+                            } else {
+                                alert("Wystąpił błąd podczas potwierdzania płatności.");
+                            }
+                        });
+                });
+            });
+
         });
     </script>
 }

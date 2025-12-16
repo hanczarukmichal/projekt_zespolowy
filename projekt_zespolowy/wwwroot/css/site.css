@@ -266,3 +266,38 @@ body {
         [data-bs-theme="dark"] ::-webkit-scrollbar-thumb:hover {
             background-color: #888;
         }
+
+
+
+.payment-item {
+    background-color: rgba(255, 255, 255, 0.6);
+    border-color: rgba(0,0,0,0.1) !important;
+}
+
+
+[data-bs-theme="dark"] .payment-alert {
+    background-color: #2c3034;
+    color: #e0e0e0;
+    border-color: #ffc107 !important;
+}
+
+    [data-bs-theme="dark"] .payment-alert .alert-heading,
+    [data-bs-theme="dark"] .payment-alert i.fa-exclamation-triangle {
+        color: #ffc107;
+    }
+
+    [data-bs-theme="dark"] .payment-alert hr {
+        border-color: #555;
+        opacity: 0.5;
+    }
+
+[data-bs-theme="dark"] .payment-item {
+    background-color: #1e1e1e;
+    border-color: #444 !important;
+    color: #fff;
+}
+
+
+    [data-bs-theme="dark"] .payment-item .opacity-75 {
+        color: #aaa;
+    }
