@@ -20,6 +20,8 @@ namespace projekt_zespolowy.Data
         // Dodana tabela dla Długów i Pożyczek
         public DbSet<Liability> Liabilities { get; set; }
 
+        public DbSet<SavingsGoal> SavingsGoals { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -43,6 +45,12 @@ namespace projekt_zespolowy.Data
                 .WithMany()
                 .HasForeignKey(b => b.ApplicationUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<SavingsGoal>()
+                .HasOne(s => s.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(s => s.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade); // Usunięcie usera usuwa cele
         }
     }
 }

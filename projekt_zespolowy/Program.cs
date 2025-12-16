@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using projekt_zespolowy.Data;
 using projekt_zespolowy.Models;
+using projekt_zespolowy.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +17,7 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-
+builder.Services.AddHostedService<AutoSaveService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

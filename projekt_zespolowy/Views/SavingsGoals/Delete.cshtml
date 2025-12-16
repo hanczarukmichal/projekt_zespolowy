@@ -1,0 +1,50 @@
+﻿@model projekt_zespolowy.Models.SavingsGoal
+
+@{
+    ViewData["Title"] = "Usuń cel";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Czy na pewno chcesz usunąć ten cel?</h4>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">@Model.Name</h3>
+
+                    <dl class="row">
+                        <dt class="col-sm-6">Kwota docelowa:</dt>
+                        <dd class="col-sm-6">@Model.TargetAmount.ToString("C")</dd>
+
+                        <dt class="col-sm-6">Uzbierano:</dt>
+                        <dd class="col-sm-6 fw-bold text-success">@Model.CurrentAmount.ToString("C")</dd>
+                    </dl>
+
+                    @if (Model.CurrentAmount > 0)
+                    {
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Kwota <strong>@Model.CurrentAmount.ToString("C")</strong> zostanie automatycznie zwrócona do Twojego głównego salda (jako przychód).
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-secondary mt-3">
+                            Na tym celu nie ma żadnych środków.
+                        </div>
+                    }
+
+                    <form asp-action="Delete" class="text-center mt-4">
+                        <input type="hidden" asp-for="Id" />
+                        <button type="submit" class="btn btn-danger btn-lg me-2">
+                            <i class="fas fa-trash-alt me-2"></i>Usuń cel
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary btn-lg">Anuluj</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
