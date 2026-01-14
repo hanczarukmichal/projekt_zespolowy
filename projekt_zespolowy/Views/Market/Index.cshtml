@@ -1,0 +1,79 @@
+﻿@model projekt_zespolowy.Models.MarketDataViewModel
+
+@{
+    ViewData["Title"] = "Rynek i Waluty";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-chart-line me-2 text-primary"></i>Notowania Rynkowe</h2>
+        <span class="badge bg-info text-dark">Dane aktualizowane z NBP</span>
+    </div>
+    <hr />
+
+    <div class="row">
+        <div class="col-xl-6 col-lg-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-coins me-2"></i>Kursy Walut (PLN)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Waluta</th>
+                                    <th class="text-center">Kod</th>
+                                    <th class="text-end">Kurs Średni</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Currencies)
+                                {
+                                    <tr>
+                                        <td>@item.Currency</td>
+                                        <td class="text-center"><span class="badge bg-secondary">@item.Code</span></td>
+                                        <td class="text-end fw-bold">@item.Mid.ToString("F4")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6 col-lg-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-university me-2"></i>Indeksy Giełdowe</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Indeks</th>
+                                    <th class="text-end">Wartość</th>
+                                    <th class="text-end">Zmiana (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var idx in Model.Indices)
+                                {
+                                    <tr>
+                                        <td class="fw-bold">@idx.Name</td>
+                                        <td class="text-end text-primary">@idx.Price</td>
+                                        <td class="text-end @(idx.Change.StartsWith("+") ? "text-success" : "text-danger")">
+                                            @idx.Change
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
