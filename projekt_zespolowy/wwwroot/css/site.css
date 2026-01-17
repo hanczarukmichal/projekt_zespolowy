@@ -301,3 +301,119 @@ body {
     [data-bs-theme="dark"] .payment-item .opacity-75 {
         color: #aaa;
     }
+/* =========================
+   AUTH / IDENTITY FORMS UI
+   ========================= */
+
+.auth-page {
+    min-height: calc(100vh - 140px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.08);
+}
+
+.auth-title {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0 0 6px 0;
+}
+
+.auth-subtitle {
+    margin: 0 0 18px 0;
+    color: rgba(0,0,0,.65);
+    font-size: 14px;
+}
+
+.auth-form .form-label {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.auth-form .form-control {
+    border-radius: 12px;
+    padding: 10px 12px;
+    border: 1px solid rgba(0,0,0,.12);
+}
+
+    .auth-form .form-control:focus {
+        border-color: rgba(13,110,253,.45);
+        box-shadow: 0 0 0 .2rem rgba(13,110,253,.15);
+    }
+
+.auth-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 14px;
+}
+
+.auth-btn {
+    width: 100%;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-weight: 700;
+}
+
+.auth-links {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+    .auth-links a {
+        text-decoration: none;
+    }
+
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+
+.auth-danger {
+    border: 1px solid rgba(220,53,69,.25);
+    background: rgba(220,53,69,.06);
+    padding: 14px;
+    border-radius: 14px;
+}
+
+    .auth-danger .btn {
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+.auth-note {
+    font-size: 13px;
+    color: rgba(0,0,0,.65);
+}
+/* AUTH NAV BUTTONS (Login/Register in navbar) */
+.auth-nav-btn {
+    border-radius: 10px;
+    padding: 6px 14px;
+    font-weight: 600;
+}
+/* Identity default pages: make forms look nicer even without scaffold */
+main form .form-control,
+main form input[type="email"],
+main form input[type="password"],
+main form input[type="text"] {
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+
+main form button[type="submit"] {
+    border-radius: 12px;
+    font-weight: 700;
+    padding: 10px 14px;
+}
