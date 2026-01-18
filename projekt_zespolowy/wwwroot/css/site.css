@@ -301,22 +301,3 @@ body {
     [data-bs-theme="dark"] .payment-item .opacity-75 {
         color: #aaa;
     }
-
-/* === FOOTER GLOBAL FIX === */
-html, body {
-    height: 100%;
-}
-
-#page-content-wrapper {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-    #page-content-wrapper > .container-fluid.p-4 {
-        flex: 1;
-    }
-
-.app-footer {
-    margin-top: auto;
-}

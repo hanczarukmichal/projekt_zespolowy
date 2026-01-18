@@ -3,9 +3,7 @@
 @inject UserManager<ApplicationUser> UserManager
 
 @{
-    // Pobieramy aktualnego użytkownika
     var user = await UserManager.GetUserAsync(User);
-    // Ustawiamy ścieżkę do awatara lub domyślny obrazek
     var userAvatar = user?.AvatarPath != null
         ? $"/uploads/avatars/{user.AvatarPath}"
         : "https://placehold.co/100x100/e9ecef/6c757d?text=User";
@@ -25,9 +23,7 @@
     <script>
         const storedTheme = localStorage.getItem('theme');
         const getPreferredTheme = () => {
-            if (storedTheme) {
-                return storedTheme;
-            }
+            if (storedTheme) return storedTheme;
             return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         };
         document.documentElement.setAttribute('data-bs-theme', getPreferredTheme());
@@ -36,152 +32,118 @@
 <body>
     <div class="d-flex" id="wrapper">
 
+        <!-- SIDEBAR -->
         <div class="border-end bg-body-tertiary" id="sidebar-wrapper">
-            <div class="sidebar-heading border-bottom bg-body-tertiary">
+            <div class="sidebar-heading border-bottom bg-body-tertiary text-center fw-bold">
                 <i class="fas fa-wallet me-2 text-primary"></i>SmartBudget
             </div>
+
             <div class="list-group list-group-flush">
-                <a asp-controller="Home" asp-action="Index" class="list-group-item list-group-item-action list-group-item-light p-3">
-                    <i class="fas fa-home me-3" style="width: 20px;"></i>Pulpit
+                <a asp-controller="Home" asp-action="Index" class="list-group-item list-group-item-action p-3">
+                    <i class="fas fa-home me-3"></i>Pulpit
                 </a>
-                <a asp-controller="Transactions" asp-action="Index" class="list-group-item list-group-item-action list-group-item-light p-3">
-                    <i class="fas fa-exchange-alt me-3" style="width: 20px;"></i>Transakcje
+                <a asp-controller="Transactions" asp-action="Index" class="list-group-item list-group-item-action p-3">
+                    <i class="fas fa-exchange-alt me-3"></i>Transakcje
                 </a>
-                <a asp-controller="Budgets" asp-action="Index" class="list-group-item list-group-item-action list-group-item-light p-3">
-                    <i class="fas fa-piggy-bank me-3" style="width: 20px;"></i>Budżety
+                <a asp-controller="Budgets" asp-action="Index" class="list-group-item list-group-item-action p-3">
+                    <i class="fas fa-piggy-bank me-3"></i>Budżety
                 </a>
-                <a asp-controller="Liabilities" asp-action="Index" class="list-group-item list-group-item-action list-group-item-light p-3">
-                    <i class="fas fa-hand-holding-usd me-3" style="width: 20px;"></i>Długi
+                <a asp-controller="Liabilities" asp-action="Index" class="list-group-item list-group-item-action p-3">
+                    <i class="fas fa-hand-holding-usd me-3"></i>Długi
                 </a>
-                <a asp-controller="SavingsGoals" asp-action="Index" class="list-group-item list-group-item-action list-group-item-light p-3">
-                    <i class="fas fa-bullseye me-3" style="width: 20px;"></i>Cele Oszczędnościowe
+                <a asp-controller="SavingsGoals" asp-action="Index" class="list-group-item list-group-item-action p-3">
+                    <i class="fas fa-bullseye me-3"></i>Cele oszczędnościowe
                 </a>
-                <a asp-controller="Categories" asp-action="Index" class="list-group-item list-group-item-action list-group-item-light p-3">
-                    <i class="fas fa-tags me-3" style="width: 20px;"></i>Kategorie
+                <a asp-controller="Categories" asp-action="Index" class="list-group-item list-group-item-action p-3">
+                    <i class="fas fa-tags me-3"></i>Kategorie
                 </a>
-                <a asp-controller="Reports" asp-action="Index" class="list-group-item list-group-item-action list-group-item-light p-3">
-                    <i class="fas fa-chart-pie me-3" style="width: 20px;"></i>Raporty
+                <a asp-controller="Reports" asp-action="Index" class="list-group-item list-group-item-action p-3">
+                    <i class="fas fa-chart-pie me-3"></i>Raporty
                 </a>
-                <a asp-controller="Market" asp-action="Index" class="list-group-item list-group-item-action list-group-item-light p-3">
-                    <i class="fas fa-chart-line me-3" style="width: 20px;"></i>Rynek i Waluty
+                <a asp-controller="Market" asp-action="Index" class="list-group-item list-group-item-action p-3">
+                    <i class="fas fa-chart-line me-3"></i>Rynek i waluty
                 </a>
-                <a asp-controller="Edukacja" asp-action="Index" class="list-group-item list-group-item-action list-group-item-light p-3">
-                    <i class="fas fa-graduation-cap me-3" style="width: 20px;"></i>Edukacja
+                <a asp-controller="Edukacja" asp-action="Index" class="list-group-item list-group-item-action p-3">
+                    <i class="fas fa-graduation-cap me-3"></i>Edukacja
                 </a>
-                <a asp-controller="Settings" asp-action="Index" class="list-group-item list-group-item-action list-group-item-light p-3">
-                    <i class="fas fa-cog me-3" style="width: 20px;"></i>Ustawienia
+                <a asp-controller="Settings" asp-action="Index" class="list-group-item list-group-item-action p-3">
+                    <i class="fas fa-cog me-3"></i>Ustawienia
                 </a>
             </div>
         </div>
 
+        <!-- PAGE CONTENT -->
         <div id="page-content-wrapper">
-            <nav class="navbar navbar-expand-lg navbar-light bg-body-tertiary border-bottom">
-                <div class="container-fluid">
-                    <button class="btn btn-primary" id="menu-toggle">
-                        <i class="fas fa-bars"></i>
+
+            <!-- TOP NAVBAR -->
+            <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom px-3">
+                <button class="btn btn-primary me-3" id="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="ms-auto d-flex align-items-center gap-2">
+
+                    <button class="btn btn-outline-secondary btn-sm" id="theme-toggle">
+                        <i class="fas fa-moon" id="theme-icon"></i>
                     </button>
 
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="dropdown">
+                            <a class="btn btn-light dropdown-toggle d-flex align-items-center"
+                               data-bs-toggle="dropdown">
+                                <img src="@userAvatar"
+                                     class="rounded-circle me-2"
+                                     style="width:32px;height:32px;object-fit:cover;">
+                                <strong>@User.Identity.Name</strong>
+                            </a>
 
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav ms-auto mt-2 mt-lg-0 align-items-center">
-
-                            <li class="nav-item me-3">
-                                <button class="btn btn-outline-secondary btn-sm" id="theme-toggle" title="Zmień motyw">
-                                    <i class="fas fa-moon" id="theme-icon"></i>
-                                </button>
-                            </li>
-
-                            @if (User.Identity.IsAuthenticated)
-                            {
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <img src="@userAvatar" alt="Avatar" class="rounded-circle me-2 border" style="width: 35px; height: 35px; object-fit: cover;">
-                                        <span class="fw-bold">@User.Identity.Name</span>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Settings" asp-action="Index">
+                                        Profil
                                     </a>
-                                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                        <a class="dropdown-item" asp-controller="Settings" asp-action="Index">Profil</a>
-                                        <div class="dropdown-divider"></div>
-                                        <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-                                            <button type="submit" class="dropdown-item text-danger">Wyloguj</button>
-                                        </form>
-                                    </div>
                                 </li>
-                            }
-                            else
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Zaloguj</a>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <form asp-area="Identity"
+                                          asp-page="/Account/Logout"
+                                          asp-route-returnUrl="@Url.Action("Index", "Home")">
+                                        <button type="submit"
+                                                class="dropdown-item text-danger">
+                                            Wyloguj
+                                        </button>
+                                    </form>
                                 </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Rejestracja</a>
-                                </li>
-                            }
-                        </ul>
-                    </div>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <a class="btn btn-outline-primary btn-sm auth-nav-btn"
+                           asp-area="Identity"
+                           asp-page="/Account/Login">
+                            Zaloguj
+                        </a>
+
+                        <a class="btn btn-primary btn-sm auth-nav-btn"
+                           asp-area="Identity"
+                           asp-page="/Account/Register">
+                            Rejestracja
+                        </a>
+                    }
                 </div>
             </nav>
 
-            <div class="container-fluid p-4">
+            <main class="container-fluid p-4">
                 @RenderBody()
             </div>
-
-            <footer class="app-footer border-top bg-body-tertiary">
-                <div class="container-fluid px-4 py-3 d-flex flex-column flex-md-row justify-content-between align-items-center">
-                    <span class="text-body-secondary small">© @DateTime.Now.Year SmartBudget</span>
-                    <span class="text-body-secondary small">KOZN25FIN</span>
-                </div>
-            </footer>
         </div>
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
-    <script>
-        // --- 1. Obsługa Paska Bocznego ---
-        var el = document.getElementById("wrapper");
-        var toggleButton = document.getElementById("menu-toggle");
-
-        toggleButton.onclick = function () {
-            el.classList.toggle("toggled");
-        };
-
-        // --- 2. Obsługa Motywu (Light/Dark) ---
-        const themeToggleBtn = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-
-        // Funkcja ustawiająca motyw
-        function setTheme(theme) {
-            // Ustawiamy atrybut w HTML (dla CSS)
-            document.documentElement.setAttribute('data-bs-theme', theme);
-            // Zapisujemy wybór w przeglądarce
-            localStorage.setItem('theme', theme);
-
-            // Logika zmiany ikony (Słońce vs Księżyc)
-            if (theme === 'dark') {
-                // Jeśli jest ciemno -> pokaż SŁOŃCE (żeby przełączyć na jasny)
-                themeIcon.className = 'fas fa-sun text-warning'; // text-warning robi słońce żółtym
-            } else {
-                // Jeśli jest jasno -> pokaż KSIĘŻYC
-                themeIcon.className = 'fas fa-moon';
-            }
-        }
-
-        // Sprawdzenie zapisanego motywu przy starcie strony
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        setTheme(savedTheme);
-
-        // Obsługa kliknięcia przycisku
-        themeToggleBtn.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            setTheme(newTheme);
-        });
-    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
